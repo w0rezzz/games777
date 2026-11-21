@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Русский Покер — EV Тренажёр (1–5 Боксов)</title>
+    <style>
+        :root {
+            --bg-app: #060913;
+            --bg-panel: rgba(15, 23, 42, 0.88);
+            --border-subtle: rgba(148, 163, 184, 0.16);
+            --border-strong: rgba(56, 189, 248, 0.35);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-cyan: #38bdf8;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --felt-center: #0f5132;
+            --felt-mid: #093622;
+            --felt-edge: #041b11;
+            --rail-wood: #2a1810;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: radial-gradient(circle at 50% 0%, #111b33 0%, var(--bg-app) 75%);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .hidden { display: none !important; }
+        .mono { font-family: var(--font-mono); }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-weight: 700;
+            font-size: 13.5px;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #fff;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            border-color: rgba(56, 189, 248, 0.5);
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+        }
+
+        .btn-emerald {
+            background: linear-gradient(135deg, #059669, #10b981);
+            border-color: rgba(52, 211, 153, 0.5);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-amber {
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            border-color: rgba(251, 191, 36, 0.5);
+            color: #0f172a;
+        }
+
+        .btn-rose {
+            background: linear-gradient(135deg, #e11d48, #f43f5e);
+            border-color: rgba(251, 113, 133, 0.5);
+        }
+
+        .btn-menu-accent {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(56, 189, 248, 0.22));
+            border: 1px solid rgba(56, 189, 248, 0.45);
+            color: #e0f2fe;
+            box-shadow: 0 4px 14px rgba(14, 165, 233, 0.18);
+        }
+
+        /* ==================== AUTH SCREEN ==================== */
+        #auth-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: radial-gradient(circle at 50% 25%, rgba(56, 189, 248, 0.14), transparent 60%);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(15, 23, 42, 0.94);
+            border: 1px solid var(--border-strong);
+            border-radius: 22px;
+            padding: 32px 28px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+            text-align: center;
+        }
+
+        .auth-logo {
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 14px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #10b981, #0284c7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+        }
+
+        .auth-field {
+            text-align: left;
+            margin-bottom: 14px;
+        }
+
+        .auth-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            background: rgba(2, 6, 23, 0.85);
+            color: #f8fafc;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            user-select: text;
+        }
+
+        .auth-input:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .auth-error {
+            min-height: 20px;
+            font-size: 12.5px;
+            color: #fb7185;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        /* ==================== MENU SCREEN ==================== */
+        #menu-screen {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 20px;
+        }
+
+        .menu-header {
+            text-align: center;
+            max-width: 720px;
+            margin-bottom: 32px;
+        }
+
+        .menu-title {
+            font-size: 34px;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #f8fafc 20%, #38bdf8 65%, #34d399 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .menu-subtitle {
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            width: 100%;
+            max-width: 920px;
+            margin-bottom: 24px;
+        }
+
+        .mode-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 16px 36px rgba(2, 132, 199, 0.2);
+        }
+
+        .mode-icon {
+            font-size: 32px;
+        }
+
+        .mode-name {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .mode-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.45;
+        }
+
+        /* ==================== GAME SCREEN ==================== */
+        #game-screen {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 20px;
+            background: rgba(10, 15, 28, 0.92);
+            border-bottom: 1px solid var(--border-subtle);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .topbar-left, .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .mode-pill {
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(56, 189, 248, 0.14);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            color: #7dd3fc;
+            font-size: 12.5px;
+            font-weight: 700;
+        }
+
+        .stat-chip {
+            padding: 6px 12px;
+            border-radius: 10px;
+            background: rgba(30, 41, 59, 0.75);
+            border: 1px solid var(--border-subtle);
+            font-size: 12.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ==================== POKER TABLE ==================== */
+        .table-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 18px 14px 28px;
+            gap: 16px;
+        }
+
+        .poker-table {
+            width: 100%;
+            max-width: 1240px;
+            background: radial-gradient(ellipse at 50% 35%, var(--felt-center) 0%, var(--felt-mid) 58%, var(--felt-edge) 100%);
+            border: 10px solid var(--rail-wood);
+            outline: 2px solid rgba(251, 191, 36, 0.25);
+            border-radius: 36px;
+            padding: 20px 18px 24px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), inset 0 0 60px rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .dealer-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.14);
+        }
+
+        .dealer-label {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #fde68a;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+
+        .cards-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 76px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            width: 50px;
+            height: 72px;
+            border-radius: 8px;
+            background: linear-gradient(160deg, #ffffff 0%, #f1f5f9 100%);
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 4px 5px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            position: relative;
+        }
+
+        .card.red { color: #dc2626; }
+        .card.black { color: #0f172a; }
+
+        .card.selected {
+            transform: translateY(-10px);
+            outline: 2.5px solid #f59e0b;
+            box-shadow: 0 10px 20px rgba(245, 158, 11, 0.45);
+        }
+
+        .card.back {
+            background: repeating-linear-gradient(
+                45deg,
+                #1e3a8a,
+                #1e3a8a 6px,
+                #1d4ed8 6px,
+                #1d4ed8 12px
+            );
+            border: 2px solid #93c5fd;
+            color: transparent;
+            cursor: default;
+        }
+
+        .card-center {
+            font-size: 19px;
+            align-self: center;
+            line-height: 1;
+        }
+
+        /* ==================== BOXES GRID ==================== */
+        .boxes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+            gap: 12px;
+        }
+
+        .box-slot {
+            background: rgba(4, 15, 11, 0.62);
+            border: 1.5px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .box-slot.disabled {
+            opacity: 0.45;
+        }
+
+        .box-slot.active-turn {
+            border-color: #fbbf24;
+            box-shadow: 0 0 24px rgba(251, 191, 36, 0.32);
+            background: rgba(6, 26, 18, 0.88);
+        }
+
+        .box-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12.5px;
+            font-weight: 800;
+        }
+
+        .box-toggle {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(15, 23, 42, 0.7);
+            color: #e2e8f0;
+            cursor: pointer;
+        }
+
+        .box-hand-badge {
+            font-size: 11.5px;
+            text-align: center;
+            padding: 4px 8px;
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.75);
+            color: #38bdf8;
+            font-weight: 700;
+        }
+
+        .box-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #cbd5e1;
+        }
+
+        /* ==================== CONTROLS & INSURANCE ==================== */
+        .control-dock {
+            width: 100%;
+            max-width: 1240px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .insurance-bar {
+            background: rgba(250, 204, 21, 0.08);
+            border: 1px solid rgba(250, 204, 21, 0.35);
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .chip-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .chip-preset {
+            padding: 6px 11px;
+            border-radius: 8px;
+            border: 1px solid rgba(253, 224, 71, 0.35);
+            background: rgba(15, 23, 42, 0.85);
+            color: #fef08a;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .chip-preset.active, .chip-preset:hover {
+            background: #eab308;
+            color: #0f172a;
+        }
+
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .helper-strip {
+            background: rgba(2, 6, 23, 0.65);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #e2e8f0;
+        }
+
+        /* ==================== MODAL / DRAWER ==================== */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.78);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 60;
+        }
+
+        .modal-card {
+            width: 100%;
+            max-width: 820px;
+            max-height: 86vh;
+            overflow-y: auto;
+            background: #0f172a;
+            border: 1px solid var(--border-strong);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .step-item {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .badge-optimal { color: #34d399; font-weight: 800; }
+        .badge-inaccuracy { color: #fbbf24; font-weight: 800; }
+        .badge-mistake { color: #fb7185; font-weight: 800; }
+
+        .builder-grid {
+            display: grid;
+            grid-template-columns: repeat(13, minmax(36px, 1fr));
+            gap: 4px;
+            margin-top: 10px;
+        }
+
+        .deck-picker-btn {
+            padding: 6px 2px;
+            border-radius: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: #1e293b;
+            color: #f8fafc;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .deck-picker-btn.red { color: #f87171; }
+        .deck-picker-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== 1. AUTH SCREEN ==================== -->
+    <section id="auth-screen">
+        <div class="auth-card">
+            <div class="auth-logo">♠️</div>
+            <h1 style="font-size:22px; font-weight:900; margin-bottom:6px;">Русский Покер EV</h1>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">
+                Авторизуйтесь для доступа к тренажёру и разбору стратегий
+            </p>
+            <form id="auth-form">
+                <div class="auth-field">
+                    <label for="auth-login">Логин</label>
+                    <input class="auth-input" id="auth-login" type="text" autocomplete="username" placeholder="Введите логин" required>
+                </div>
+                <div class="auth-field">
+                    <label for="auth-pass">Пароль</label>
+                    <input class="auth-input" id="auth-pass" type="password" autocomplete="current-password" placeholder="Введите пароль" required>
+                </div>
+                <div class="auth-error" id="auth-error"></div>
+                <button type="submit" class="btn btn-emerald" style="width:100%; padding:12px;">
+                    Войти в тренажёр
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- ==================== 2. MAIN MENU SCREEN ==================== -->
+    <section id="menu-screen" class="hidden">
+        <div class="menu-header">
+            <h1 class="menu-title">Русский Покер — EV Тренажёр</h1>
+            <p class="menu-subtitle">
+                1 дилер и от 1 до 5 активных боксов • Расчёт матожидания обменов, покупки 6-й карты, игры втёмную и страховки от «Нет игры»
+            </p>
+        </div>
+
+        <div class="mode-grid">
+            <div class="mode-card" onclick="startMode('hints')">
+                <div class="mode-icon">🎯</div>
+                <div class="mode-name">Свободный с подсказками</div>
+                <div class="mode-desc">
+                    Полный EV-анализ в реальном времени: оптимальный обмен, покупка 6-й карты, шанс «Нет игры» дилера и расчёт страховки.
+                </div>
+            </div>
+
+            <div class="mode-card" onclick="startMode('exam')">
+                <div class="mode-icon">📝</div>
+                <div class="mode-name">Экзамен</div>
+                <div class="mode-desc">
+                    Подсказки скрыты во время раздачи. Принимайте решения самостоятельно и проверяйте ошибки в разборе ходов и ликах.
+                </div>
+            </div>
+
+            <div class="mode-card" onclick="startMode('builder')">
+                <div class="mode-icon">🛠️</div>
+                <div class="mode-name">Конструктор раздач</div>
+                <div class="mode-desc">
+                    Задайте любую карту дилера и любые карты на боксах, чтобы протестировать сложные споты и страховку сильных рук.
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+            <button class="btn" onclick="openModal('rules-modal')">📘 Правила и выплаты</button>
+            <button class="btn btn-rose" onclick="logoutUser()">🚪 Выйти из аккаунта</button>
+        </div>
+    </section>
+
+    <!-- ==================== 3. GAME SCREEN ==================== -->
+    <section id="game-screen" class="hidden">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="btn btn-menu-accent" onclick="returnToMenu()">☰ Меню</button>
+                <span class="mode-pill" id="current-mode-badge">🎯 Свободный с подсказками</span>
+            </div>
+
+            <div class="topbar-right">
+                <div class="stat-chip">Банкролл: <strong class="mono" id="stat-bankroll" style="color:#34d399;">+0.00 A</strong></div>
+                <div class="stat-chip">Точность: <strong class="mono" id="stat-accuracy">100%</strong></div>
+                <div class="stat-chip">Потери EV: <strong class="mono" id="stat-ev-loss" style="color:#fb7185;">0.00 A</strong></div>
+                <button class="btn" onclick="openModal('history-modal')">📊 Разбор ходов</button>
+                <button class="btn" onclick="openModal('leaks-modal')">🩺 Лики</button>
+                <button class="btn" onclick="openModal('rules-modal')">📘 Правила</button>
+                <button class="btn btn-rose" onclick="logoutUser()" title="Выйти">🚪</button>
+            </div>
+        </header>
+
+        <main class="table-wrapper">
+            <div class="poker-table">
+                <!-- DEALER ZONE -->
+                <div class="dealer-zone">
+                    <div class="dealer-label" id="dealer-status-label">Дилер • Квалификация от Туз-Король (AK)</div>
+                    <div class="cards-row" id="dealer-cards"></div>
+                </div>
+
+                <!-- 5 BOXES -->
+                <div class="boxes-grid" id="boxes-container"></div>
+            </div>
+
+            <!-- CONTROL DOCK -->
+            <div class="control-dock">
+                <!-- BUILDER PANEL -->
+                <div id="builder-panel" class="hidden" style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.3); border-radius:12px; padding:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <strong style="font-size:13px; color:#7dd3fc;">🛠️ Конструктор: выберите слот, затем нажмите на карту из колоды</strong>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;" id="builder-target-buttons"></div>
+                    </div>
+                    <div class="builder-grid" id="builder-deck-grid"></div>
+                </div>
+
+                <!-- INSURANCE PANEL -->
+                <div class="insurance-bar hidden" id="insurance-panel">
+                    <div>
+                        <div style="font-size:13px; font-weight:800; color:#fde047;">🛡️ Страховка от «Нет игры» у дилера</div>
+                        <div style="font-size:12px; color:#cbd5e1; margin-top:2px;">
+                            Выбрано: <span class="mono" id="ins-selected-val">0.0 A</span>
+                            <span style="margin-left:10px;">• EV страховки: <strong class="mono" id="ins-live-ev">—</strong></span>
+                        </div>
+                    </div>
+                    <div class="chip-presets" id="ins-presets"></div>
+                    <div id="ins-analysis-box" style="width:100%; margin-top:6px; padding-top:8px; border-top:1px solid rgba(253,224,71,0.22); font-size:12px; line-height:1.45; color:#e2e8f0;"></div>
+                </div>
+
+                <!-- ACTION BAR -->
+                <div class="action-bar">
+                    <div style="font-size:13.5px; font-weight:700; color:#f8fafc;" id="turn-prompt">
+                        Нажмите «Новая раздача», чтобы начать
+                    </div>
+                    <div class="action-buttons" id="action-buttons"></div>
+                </div>
+
+                <!-- HELPER / ANALYSIS STRIP -->
+                <div class="helper-strip" id="table-helper-strip">
+                    Выберите режим и начните раздачу. В режиме «Свободный с подсказками» здесь отображается точный расчёт EV.
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- ==================== MODALS ==================== -->
+    <div id="history-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeModal('history-modal')">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 style="font-size:18px; font-weight:800;">📊 Разбор ходов и страховок</h2>
+                <button class="btn" onclick="closeModal('history-modal')">✕ Закрыть</button>
+            </div>
+            <div id="history-list"></div>
+        </div>
+    </div>
+
+    <div id="leaks-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeModal('leaks-modal')">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 style="font-size:18px; font-weight:800;">🩺 Анализ ликов (ошибок стратегии)</h2>
+                <button class="btn" onclick="closeModal('leaks-modal')">✕ Закрыть</button>
+            </div>
+            <div id="leaks-list"></div>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeModal('rules-modal')">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 style="font-size:18px; font-weight:800;">📘 Правила Русского Покера и страховки</h2>
+                <button class="btn" onclick="closeModal('rules-modal')">✕ Закрыть</button>
+            </div>
+            <div style="font-size:13.5px; line-height:1.6; color:#cbd5e1; display:flex; flex-direction:column; gap:10px;">
+                <p><strong>1. Базовые ставки:</strong> Каждый активный бокс ставит <strong>Анте (1 A)</strong>. Игрок получает 5 карт, у дилера открыта 1 карта.</p>
+                <p><strong>2. Решения до шоудауна:</strong> Игрок может <strong>Сбросить</strong> (потеря 1 A), сделать <strong>Бет 2 A</strong> (подтвердить игру), <strong>Обменять</strong> от 1 до 5 карт за <strong>1 A</strong> или <strong>Купить 6-ю карту</strong> за <strong>1 A</strong>.</p>
+                <p><strong>3. Квалификация дилера:</strong> У дилера «есть игра», если его комбинация не младше <strong>Туз-Король (AK)</strong>. Если у дилера «Нет игры», игрок получает выплату <strong>1 A</strong> по Анте (если не докупил игру дилеру).</p>
+                <p><strong>4. Страховка от «Нет игры»:</strong> Доступна при комбинации от <strong>Стрита</strong> и выше. Страховка оплачивается <strong>1 к 1</strong> при «Нет игры» дилера и сгорает, если у дилера есть игра. Матожидание самой страховки: <span class="mono">EV = S × (2 × P(Нет игры) − 1)</span>.</p>
+                <p><strong>5. Таблица выплат по Бету (2 A):</strong> Роял-флеш 100:1, Стрит-флеш 50:1, Каре 20:1, Фулл-хаус 7:1, Флеш 5:1, Стрит 4:1, Сет 3:1, Две пары 2:1, Пара / AK 1:1.</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+(function() {
+    'use strict';
+
+    /* ==================== AUTHENTICATION ==================== */
+    const _u = atob('ZXhl');
+    const _p = atob('YXppbm83Nzc=');
+    const AUTH_KEY = 'rp_trainer_auth_ok';
+
+    function checkAuth() {
+        const isOk = sessionStorage.getItem(AUTH_KEY) === '1';
+        document.getElementById('auth-screen').classList.toggle('hidden', isOk);
+        document.getElementById('menu-screen').classList.toggle('hidden', !isOk);
+        if (!isOk) {
+            document.getElementById('game-screen').classList.add('hidden');
+        }
+    }
+
+    document.getElementById('auth-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const loginVal = document.getElementById('auth-login').value.trim();
+        const passVal = document.getElementById('auth-pass').value;
+        const errEl = document.getElementById('auth-error');
+
+        if (loginVal === _u && passVal === _p) {
+            errEl.textContent = '';
+            sessionStorage.setItem(AUTH_KEY, '1');
+            checkAuth();
+        } else {
+            errEl.textContent = 'Неверный логин или пароль';
+        }
+    });
+
+    window.logoutUser = function() {
+        sessionStorage.removeItem(AUTH_KEY);
+        document.getElementById('auth-pass').value = '';
+        checkAuth();
+    };
+
+    /* ==================== CARDS & EVALUATOR ==================== */
+    const SUITS = ['♠', '♥', '♦', '♣'];
+    const RANKS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+    const RANK_LABELS = {
+        2:'2', 3:'3', 4:'4', 5:'5', 6:'6', 7:'7', 8:'8', 9:'9',
+        10:'10', 11:'J', 12:'Q', 13:'K', 14:'A'
+    };
+
+    const HAND_NAMES = [
+        'Нет игры',
+        'Туз-Король (AK)',
+        'Пара',
+        'Две пары',
+        'Сет (Тройка)',
+        'Стрит',
+        'Флеш',
+        'Фулл-хаус',
+        'Каре',
+        'Стрит-флеш',
+        'Роял-флеш'
+    ];
+
+    const PAYOUT_MULT = [0, 1, 1, 2, 3, 4, 5, 7, 20, 50, 100];
+
+    function createDeck() {
+        const deck = [];
+        for (const s of SUITS) {
+            for (const r of RANKS) {
+                deck.push({
+                    id: `${r}${s}`,
+                    rank: r,
+                    suit: s,
+                    label: `${RANK_LABELS[r]}${s}`,
+                    isRed: (s === '♥' || s === '♦')
+                });
+            }
+        }
+        return deck;
+    }
+
+    function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    function pickRandomCards(deck, count) {
+        const copy = [...deck];
+        const res = [];
+        for (let i = 0; i < count && copy.length > 0; i++) {
+            const idx = Math.floor(Math.random() * copy.length);
+            res.push(copy[idx]);
+            copy.splice(idx, 1);
+        }
+        return res;
+    }
+
+    function evaluate5Cards(cards) {
+        const sorted = [...cards].sort((a, b) => b.rank - a.rank);
+        const ranks = sorted.map(c => c.rank);
+        const suits = sorted.map(c => c.suit);
+
+        const isFlush = suits.every(s => s === suits[0]);
+        let isStraight = false;
+        let straightHigh = 0;
+
+        const uniqueRanks = [...new Set(ranks)];
+        if (uniqueRanks.length === 5) {
+            if (ranks[0] - ranks[4] === 4) {
+                isStraight = true;
+                straightHigh = ranks[0];
+            } else if (ranks[0] === 14 && ranks[1] === 5 && ranks[2] === 4 && ranks[3] === 3 && ranks[4] === 2) {
+                isStraight = true;
+                straightHigh = 5;
+            }
+        }
+
+        const counts = {};
+        for (const r of ranks) counts[r] = (counts[r] || 0) + 1;
+        const groups = Object.entries(counts)
+            .map(([r, c]) => ({ rank: Number(r), count: c }))
+            .sort((a, b) => (b.count - a.count) || (b.rank - a.rank));
+
+        let rank = 0;
+        let tieBreaker = [];
+
+        if (isFlush && isStraight) {
+            rank = (straightHigh === 14) ? 10 : 9;
+            tieBreaker = [straightHigh];
+        } else if (groups[0].count === 4) {
+            rank = 8;
+            tieBreaker = [groups[0].rank, groups[1].rank];
+        } else if (groups[0].count === 3 && groups[1].count === 2) {
+            rank = 7;
+            tieBreaker = [groups[0].rank, groups[1].rank];
+        } else if (isFlush) {
+            rank = 6;
+            tieBreaker = ranks;
+        } else if (isStraight) {
+            rank = 5;
+            tieBreaker = [straightHigh];
+        } else if (groups[0].count === 3) {
+            rank = 4;
+            tieBreaker = [groups[0].rank, groups[1].rank, groups[2].rank];
+        } else if (groups[0].count === 2 && groups[1].count === 2) {
+            rank = 3;
+            tieBreaker = [groups[0].rank, groups[1].rank, groups[2].rank];
+        } else if (groups[0].count === 2) {
+            rank = 2;
+            tieBreaker = [groups[0].rank, groups[1].rank, groups[2].rank, groups[3].rank];
+        } else if (ranks[0] === 14 && ranks[1] === 13) {
+            rank = 1;
+            tieBreaker = ranks;
+        } else {
+            rank = 0;
+            tieBreaker = ranks;
+        }
+
+        let score = rank * 1e10;
+        for (let i = 0; i < tieBreaker.length; i++) {
+            score += tieBreaker[i] * Math.pow(15, 4 - i);
+        }
+
+        return {
+            rank,
+            name: HAND_NAMES[rank],
+            payout: PAYOUT_MULT[rank],
+            score
+        };
+    }
+
+    function evaluateRussianHand(cards) {
+        if (cards.length <= 5) {
+            const ev = evaluate5Cards(cards);
+            return { primary: ev, secondary: null, totalPayout: ev.payout };
+        }
+        // 6 cards: find best 5-card combo + second distinct combo if applicable
+        let best = null;
+        for (let skip = 0; skip < cards.length; skip++) {
+            const sub = cards.filter((_, idx) => idx !== skip);
+            const ev = evaluate5Cards(sub);
+            if (!best || ev.score > best.score) best = ev;
+        }
+        return { primary: best, secondary: null, totalPayout: best.payout };
+    }
+
+    /* ==================== MONTE CARLO & EV ENGINE ==================== */
+    const SIM_MULTIPLIER = 0.65;
+
+    function formatEV(val) {
+        const sign = val > 0.004 ? '+' : '';
+        return `${sign}${val.toFixed(2)} A`;
+    }
+
+    function pureInsEVForUnit(noGameProb) {
+        return 2.0 * noGameProb - 1.0;
+    }
+
+    function pureInsEVPositive(noGameProb) {
+        return pureInsEVForUnit(noGameProb) > 0.01;
+    }
+
+    function simulateShowdownEV(playerCards, dealerUpCard, excludeIds, isBlind = false) {
+        const pEval = evaluateRussianHand(playerCards);
+        const known = new Set([...playerCards.map(c => c.id), dealerUpCard.id, ...excludeIds]);
+        const remDeck = createDeck().filter(c => !known.has(c.id));
+
+        const sims = Math.max(260, Math.round(650 * SIM_MULTIPLIER));
+        let totalProfit = 0;
+        let noGameCount = 0;
+
+        for (let i = 0; i < sims; i++) {
+            const hole = pickRandomCards(remDeck, 4);
+            const dEval = evaluate5Cards([dealerUpCard, ...hole]);
+            if (dEval.rank === 0) {
+                noGameCount++;
+                // Дилер без игры: втёмную при своей игре платится бонус, иначе 1 A
+                if (isBlind && pEval.primary.rank >= 1) {
+                    totalProfit += 2 * pEval.totalPayout;
+                } else {
+                    totalProfit += 1.0;
+                }
+            } else {
+                if (pEval.primary.score > dEval.score) {
+                    totalProfit += 2 * pEval.totalPayout;
+                } else if (pEval.primary.score < dEval.score) {
+                    totalProfit -= 3.0; // 1 Ante + 2 Bet
+                }
+            }
+        }
+
+        return {
+            evBet: totalProfit / sims,
+            dealerNoGameProb: noGameCount / sims
+        };
+    }
+
+    function analyzeBoxDecisions(box, dealerUpCard, excludeIds) {
+        const sd = simulateShowdownEV(box.cards, dealerUpCard, excludeIds, box.isBlind);
+        const evFold = -1.0;
+        const evBet = sd.evBet;
+
+        const actions = [
+            { type: 'fold', label: 'Сбросить (−1.00 A)', ev: evFold },
+            { type: 'bet', label: 'Бет 2 A (Играть)', ev: evBet }
+        ];
+
+        // Оценка покупки 6-й карты (только если ещё 5 карт и не было обмена)
+        let evBuy6 = -999;
+        if (!box.hasExchangedOrBought && box.cards.length === 5) {
+            const known = new Set([...box.cards.map(c => c.id), dealerUpCard.id, ...excludeIds]);
+            const remDeck = createDeck().filter(c => !known.has(c.id));
+            const sampleCards = pickRandomCards(remDeck, Math.min(18, remDeck.length));
+            let sum6 = 0;
+            for (const extra of sampleCards) {
+                const subSd = simulateShowdownEV([...box.cards, extra], dealerUpCard, excludeIds, false);
+                sum6 += Math.max(-1.0, subSd.evBet) - 1.0;
+            }
+            evBuy6 = sampleCards.length > 0 ? (sum6 / sampleCards.length) : -2.0;
+            actions.push({ type: 'buy6', label: 'Купить 6-ю карту (−1 A)', ev: evBuy6 });
+        }
+
+        // Оценка лучшего обмена (1-2 слабейшие карты)
+        let bestExchange = null;
+        if (!box.hasExchangedOrBought && box.cards.length === 5) {
+            const indices = [0, 1, 2, 3, 4];
+            const candidates = [];
+            for (let i = 0; i < 5; i++) candidates.push([i]);
+            for (let i = 0; i < 5; i++) {
+                for (let j = i + 1; j < 5; j++) candidates.push([i, j]);
+            }
+
+            const known = new Set([...box.cards.map(c => c.id), dealerUpCard.id, ...excludeIds]);
+            const remDeck = createDeck().filter(c => !known.has(c.id));
+
+            for (const dropIdx of candidates.slice(0, 10)) {
+                const kept = box.cards.filter((_, idx) => !dropIdx.includes(idx));
+                let sumEx = 0;
+                const trials = 16;
+                for (let t = 0; t < trials; t++) {
+                    const drawn = pickRandomCards(remDeck, dropIdx.length);
+                    const newHand = [...kept, ...drawn];
+                    const subSd = simulateShowdownEV(newHand, dealerUpCard, excludeIds, false);
+                    sumEx += Math.max(-1.0, subSd.evBet) - 1.0;
+                }
+                const avgEx = sumEx / trials;
+                if (!bestExchange || avgEx > bestExchange.ev) {
+                    bestExchange = {
+                        dropIndices: dropIdx,
+                        dropLabels: dropIdx.map(i => box.cards[i].label).join(', '),
+                        ev: avgEx
+                    };
+                }
+            }
+
+            if (bestExchange) {
+                actions.push({
+                    type: 'exchange',
+                    label: `Обмен (${bestExchange.dropLabels})`,
+                    ev: bestExchange.ev,
+                    dropIndices: bestExchange.dropIndices
+                });
+            }
+        }
+
+        actions.sort((a, b) => b.ev - a.ev);
+        return {
+            evFold,
+            evBet,
+            evBuy6,
+            bestExchange,
+            dealerNoGameProb: sd.dealerNoGameProb,
+            actions,
+            bestAction: actions[0]
+        };
+    }
+
+    function calculateInsuranceBreakdown(box, dealerUpCard, excludeIds = new Set()) {
+        const pEval = evaluateRussianHand(box.cards);
+        const maxIns = pEval.totalPayout * 2;
+        const candidates = [0, 0.5, 1.0, 2.0, Math.min(4.0, maxIns)]
+            .filter((v, i, a) => v >= 0 && v <= maxIns + 1e-9 && a.indexOf(v) === i);
+
+        const noGameProb = box.evData ? box.evData.dealerNoGameProb : 0.45;
+        const qualifyProb = 1 - noGameProb;
+
+        const knownIds = new Set([...box.cards.map(c => c.id), dealerUpCard.id, ...excludeIds]);
+        const remDeck = createDeck().filter(c => !knownIds.has(c.id));
+        let winWhenQualify = 0;
+        const simCount = Math.max(250, Math.round(650 * SIM_MULTIPLIER));
+        let qualifiedSamples = 0;
+
+        for (let i = 0; i < simCount; i++) {
+            const hole = pickRandomCards(remDeck, 4);
+            const dEval = evaluate5Cards([dealerUpCard, ...hole]);
+            if (dEval.rank > 0) {
+                qualifiedSamples++;
+                if (pEval.primary.score > dEval.score) {
+                    winWhenQualify++;
+                }
+            }
+        }
+        const winCondQualify = qualifiedSamples > 0 ? (winWhenQualify / qualifiedSamples) : 0.35;
+
+        const evaluatedOptions = candidates.map(insAnte => {
+            const pureInsEV = insAnte * (2.0 * noGameProb - 1.0);
+            const evWithBetAndIns = (box.evData ? box.evData.evBet : 0) + pureInsEV;
+            return {
+                insAnte,
+                pureInsEV,
+                evWithBetAndIns
+            };
+        });
+
+        evaluatedOptions.sort((a, b) => b.evWithBetAndIns - a.evWithBetAndIns);
+        const bestOption = evaluatedOptions[0] || { insAnte: 0, pureInsEV: 0, evWithBetAndIns: 0 };
+
+        let verdict = '';
+        if (pureInsEVPositive(noGameProb)) {
+            verdict = `Нет игры дилера (~${(noGameProb * 100).toFixed(0)}%) делает страховку математически плюсовой (+EV). Оптимально поставить <strong>${bestOption.insAnte.toFixed(1)} A</strong>.`;
+        } else if (pEval.primary.rank >= 6 && winCondQualify < 0.55) {
+            verdict = `У вас сильная комбинация (<strong>${pEval.primary.name}</strong>), но если дилер соберёт игру, она может проиграть старшей руке — страховка защищает выплату при «Нет игры» дилера, но имеет отрицательное матожидание (${formatEV(pureInsEVForUnit(noGameProb))} на 1 A).`;
+        } else {
+            verdict = `При вероятности «Нет игры» ~${(noGameProb * 100).toFixed(0)}% страховка имеет отрицательное EV (${formatEV(pureInsEVForUnit(noGameProb))} на 1 A). Без страховки выгоднее на дистанции.`;
+        }
+
+        return {
+            maxIns,
+            noGameProb,
+            qualifyProb,
+            winCondQualify,
+            options: evaluatedOptions,
+            bestOption,
+            verdict
+        };
+    }
+
+    /* ==================== GAME STATE ==================== */
+    const state = {
+        mode: 'hints',
+        phase: 'idle',
+        deck: [],
+        dealerCards: [],
+        boxes: [],
+        activeBoxIndex: 0,
+        bankrollAnte: 0,
+        decisionsTotal: 0,
+        decisionsOptimal: 0,
+        totalEVLossAnte: 0,
+        history: [],
+        currentHandSteps: [],
+        leaks: {
+            badFold: { count: 0, loss: 0, title: 'Ошибочный фолд плюсовой руки', tip: 'Проверяйте эквити против открытой карты дилера — часто AK и слабые пары выгоднее играть бетом.' },
+            badCall: { count: 0, loss: 0, title: 'Минусовой бет (коллирование со слабой рукой)', tip: 'Руки без совпадений и ниже AK против сильной карты дилера лучше сбрасывать или улучшать обменом.' },
+            missedExchange: { count: 0, loss: 0, title: 'Упущенный выгодный обмен / 6-я карта', tip: 'Дро на стрит или флеш против высокой карты дилера часто дают больше EV через покупку или обмен.' },
+            badInsurance: { count: 0, loss: 0, title: 'Ошибки при страховке от «Нет игры»', tip: 'Страховка 1:1 плюсова только когда вероятность «Нет игры» у дилера превышает 50%.' }
+        },
+        builderTarget: 'dealer_0'
+    };
+
+    function initBoxes() {
+        state.boxes = Array.from({ length: 5 }, (_, i) => ({
+            index: i,
+            enabled: i < 2,
+            cards: [],
+            selectedCardIndices: new Set(),
+            status: 'waiting', // waiting | playing | bet | folded | done
+            hasExchangedOrBought: false,
+            isBlind: false,
+            insuranceAnte: 0,
+            evData: null,
+            resultText: ''
+        }));
+    }
+
+    initBoxes();
+
+    function getActiveBox() {
+        return state.boxes[state.activeBoxIndex] || null;
+    }
+
+    function getAllKnownCardIds() {
+        const ids = new Set();
+        if (state.dealerCards[0]) ids.add(state.dealerCards[0].id);
+        for (const b of state.boxes) {
+            if (b.enabled) {
+                for (const c of b.cards) ids.add(c.id);
+            }
+        }
+        return ids;
+    }
+
+    function classifyEVLoss(diff) {
+        const loss = Math.abs(diff);
+        if (loss <= 0.04) return { grade: 'optimal', badge: 'badge-optimal', label: '✅ Оптимально' };
+        if (loss <= 0.25) return { grade: 'inaccuracy', badge: 'badge-inaccuracy', label: '⚠️ Неточность' };
+        return { grade: 'mistake', badge: 'badge-mistake', label: '❌ Ошибка' };
+    }
+
+    function trackLeak(key, loss) {
+        if (state.leaks[key]) {
+            state.leaks[key].count++;
+            state.leaks[key].loss += loss;
+        }
+    }
+
+    /* ==================== NAVIGATION & MODALS ==================== */
+    window.startMode = function(mode) {
+        state.mode = mode;
+        document.getElementById('menu-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+
+        const badgeMap = {
+            hints: '🎯 Свободный с подсказками',
+            exam: '📝 Экзамен',
+            builder: '🛠️ Конструктор раздач'
+        };
+        document.getElementById('current-mode-badge').textContent = badgeMap[mode] || mode;
+        document.getElementById('builder-panel').classList.toggle('hidden', mode !== 'builder');
+
+        if (mode === 'builder') {
+            setupBuilderBoard();
+        } else {
+            dealNewHand();
+        }
+    };
+
+    window.returnToMenu = function() {
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('menu-screen').classList.remove('hidden');
+    };
+
+    window.openModal = function(id) {
+        if (id === 'history-modal') renderHistoryModal();
+        if (id === 'leaks-modal') renderLeaksModal();
+        document.getElementById(id).classList.remove('hidden');
+    };
+
+    window.closeModal = function(id) {
+        document.getElementById(id).classList.add('hidden');
+    };
+
+    /* ==================== DEAL & FLOW ==================== */
+    window.dealNewHand = function() {
+        const enabledBoxes = state.boxes.filter(b => b.enabled);
+        if (enabledBoxes.length === 0) {
+            state.boxes[0].enabled = true;
+        }
+
+        state.deck = shuffle(createDeck());
+        state.dealerCards = [state.deck.pop()];
+        state.currentHandSteps = [];
+
+        for (const b of state.boxes) {
+            b.selectedCardIndices.clear();
+            b.hasExchangedOrBought = false;
+            b.isBlind = false;
+            b.insuranceAnte = 0;
+            b.evData = null;
+            b.resultText = '';
+
+            if (b.enabled) {
+                b.cards = [state.deck.pop(), state.deck.pop(), state.deck.pop(), state.deck.pop(), state.deck.pop()];
+                b.status = 'playing';
+            } else {
+                b.cards = [];
+                b.status = 'waiting';
+            }
+        }
+
+        state.phase = 'decision_boxes';
+        state.activeBoxIndex = state.boxes.findIndex(b => b.enabled);
+        recomputeActiveBoxEV();
+        renderAll();
+    };
+
+    function recomputeActiveBoxEV() {
+        const box = getActiveBox();
+        if (!box || !box.enabled || box.status !== 'playing') return;
+        const excludeIds = getAllKnownCardIds();
+        const boxExclude = new Set([...excludeIds].filter(id => !box.cards.some(c => c.id === id)));
+        box.evData = analyzeBoxDecisions(box, state.dealerCards[0], boxExclude);
+    }
+
+    function advanceToNextBoxOrShowdown() {
+        const nextIdx = state.boxes.findIndex((b, idx) => idx > state.activeBoxIndex && b.enabled && b.status === 'playing');
+        if (nextIdx !== -1) {
+            state.activeBoxIndex = nextIdx;
+            recomputeActiveBoxEV();
+            renderAll();
+        } else {
+            resolveShowdown();
+        }
+    }
+
+    window.setInsurance = function(val) {
+        const box = getActiveBox();
+        if (!box) return;
+        box.insuranceAnte = Number(val);
+        renderInsurancePanel();
+    };
+
+    window.handlePlayerAction = function(actionType) {
+        const box = getActiveBox();
+        if (!box || state.phase !== 'decision_boxes') return;
+
+        const data = box.evData;
+        const handSnapshot = box.cards.map(c => c.label).join(' ');
+        const dealerUpStr = state.dealerCards[0].label;
+
+        let chosenEV = data.evBet;
+        let chosenLabel = 'Бет 2 A';
+
+        if (actionType === 'fold') {
+            chosenEV = data.evFold;
+            chosenLabel = 'Сбросить';
+        } else if (actionType === 'buy6') {
+            chosenEV = data.evBuy6;
+            chosenLabel = 'Купить 6-ю карту';
+        } else if (actionType === 'exchange') {
+            const dropCount = box.selectedCardIndices.size;
+            if (dropCount === 0) {
+                alert('Выберите от 1 до 5 карт кликом по картам бокса для обмена.');
+                return;
+            }
+            const dropLabels = [...box.selectedCardIndices].map(i => box.cards[i].label).join(', ');
+            chosenLabel = `Обмен (${dropLabels})`;
+            chosenEV = (data.bestExchange && data.bestExchange.dropIndices.length === dropCount)
+                ? data.bestExchange.ev
+                : (data.bestExchange ? data.bestExchange.ev - 0.15 : data.evBet - 0.25);
+        }
+
+        // Фиксация решения по страховке при Бете
+        if (actionType === 'bet' && box.insuranceAnte > 0) {
+            const excludeIds = getAllKnownCardIds();
+            const boxExclude = new Set([...excludeIds].filter(id => !box.cards.some(c => c.id === id)));
+            const insBreak = calculateInsuranceBreakdown(box, state.dealerCards[0], boxExclude);
+            const chosenInsObj = insBreak.options.find(o => Math.abs(o.insAnte - box.insuranceAnte) < 1e-6)
+                || { insAnte: box.insuranceAnte, pureInsEV: box.insuranceAnte * pureInsEVForUnit(insBreak.noGameProb), evWithBetAndIns: data.evBet };
+            const insLossVsBest = Math.max(0, insBreak.bestOption.evWithBetAndIns - chosenInsObj.evWithBetAndIns);
+
+            const insGradeCls = classifyEVLoss(-insLossVsBest);
+            const insNote = pureInsEVPositive(insBreak.noGameProb)
+                ? `При шансе «Нет игры» ${(insBreak.noGameProb * 100).toFixed(0)}% страховка ${box.insuranceAnte.toFixed(1)} A даёт ${formatEV(chosenInsObj.pureInsEV)}.`
+                : `Страховка ${box.insuranceAnte.toFixed(1)} A имеет EV ${formatEV(chosenInsObj.pureInsEV)} при шансе «Нет игры» ${(insBreak.noGameProb * 100).toFixed(0)}% (лучше ${insBreak.bestOption.insAnte.toFixed(1)} A).`;
+
+            state.decisionsTotal++;
+            state.totalEVLossAnte += insLossVsBest;
+            if (insGradeCls.grade === 'optimal') state.decisionsOptimal++;
+            if (insLossVsBest > 0.04) {
+                trackLeak('badInsurance', insLossVsBest);
+            }
+
+            state.currentHandSteps.push({
+                stage: `Бокс #${box.index + 1} (страховка от «Нет игры»)`,
+                cards: handSnapshot,
+                dealerUp: dealerUpStr,
+                chosenLabel: `Страховка ${box.insuranceAnte.toFixed(1)} A`,
+                chosenEV: chosenInsObj.pureInsEV,
+                bestLabel: `Страховка ${insBreak.bestOption.insAnte.toFixed(1)} A`,
+                bestEV: insBreak.bestOption.pureInsEV,
+                diff: -insLossVsBest,
+                grade: insGradeCls.grade,
+                badgeClass: insGradeCls.badge,
+                gradeLabel: insGradeCls.label,
+                whyText: `${insNote} ${insBreak.verdict.replace(/<[^>]+>/g, '')}`
+            });
+        } else if (actionType === 'bet' && box.insuranceAnte === 0) {
+            const pEval = evaluateRussianHand(box.cards);
+            if (pEval.primary.rank >= 4) {
+                const excludeIds = getAllKnownCardIds();
+                const boxExclude = new Set([...excludeIds].filter(id => !box.cards.some(c => c.id === id)));
+                const insBreak = calculateInsuranceBreakdown(box, state.dealerCards[0], boxExclude);
+                if (insBreak.bestOption.insAnte > 0 && insBreak.bestOption.pureInsEV > 0.03) {
+                    const missedInsEV = insBreak.bestOption.pureInsEV;
+                    trackLeak('badInsurance', missedInsEV);
+                    state.currentHandSteps.push({
+                        stage: `Бокс #${box.index + 1} (страховка от «Нет игры»)`,
+                        cards: handSnapshot,
+                        dealerUp: dealerUpStr,
+                        chosenLabel: 'Без страховки (0.0 A)',
+                        chosenEV: 0,
+                        bestLabel: `Страховка ${insBreak.bestOption.insAnte.toFixed(1)} A`,
+                        bestEV: insBreak.bestOption.pureInsEV,
+                        diff: -missedInsEV,
+                        grade: 'inaccuracy',
+                        badgeClass: 'badge-inaccuracy',
+                        gradeLabel: '⚠️ Неточность',
+                        whyText: `Упущена плюсовая страховка: при «Нет игры» ${(insBreak.noGameProb * 100).toFixed(0)}% ставка ${insBreak.bestOption.insAnte.toFixed(1)} A даёт ${formatEV(insBreak.bestOption.pureInsEV)}.`
+                    });
+                }
+            }
+        }
+
+        const bestEV = data.bestAction.ev;
+        const evDiff = chosenEV - bestEV;
+        const loss = Math.max(0, -evDiff);
+        const gradeObj = classifyEVLoss(evDiff);
+
+        state.decisionsTotal++;
+        state.totalEVLossAnte += loss;
+        if (gradeObj.grade === 'optimal') state.decisionsOptimal++;
+
+        if (loss > 0.05) {
+            if (actionType === 'fold') trackLeak('badFold', loss);
+            else if (actionType === 'bet' && data.bestAction.type === 'fold') trackLeak('badCall', loss);
+            else trackLeak('missedExchange', loss);
+        }
+
+        state.currentHandSteps.push({
+            stage: `Бокс #${box.index + 1} (${box.hasExchangedOrBought ? 'после докупки/обмена' : '1-й ход'})`,
+            cards: handSnapshot,
+            dealerUp: dealerUpStr,
+            chosenLabel,
+            chosenEV,
+            bestLabel: data.bestAction.label,
+            bestEV,
+            diff: evDiff,
+            grade: gradeObj.grade,
+            badgeClass: gradeObj.badge,
+            gradeLabel: gradeObj.label,
+            whyText: `Против открытой карты дилера ${dealerUpStr} лучшее действие по EV — «${data.bestAction.label}» (${formatEV(bestEV)}).`
+        });
+
+        // Выполнение действия
+        if (actionType === 'fold') {
+            box.status = 'folded';
+            box.resultText = 'Фолд (−1.00 A)';
+            state.bankrollAnte -= 1.0;
+            advanceToNextBoxOrShowdown();
+        } else if (actionType === 'bet') {
+            box.status = 'bet';
+            advanceToNextBoxOrShowdown();
+        } else if (actionType === 'buy6') {
+            state.bankrollAnte -= 1.0;
+            box.hasExchangedOrBought = true;
+            box.cards.push(state.deck.pop());
+            recomputeActiveBoxEV();
+            renderAll();
+        } else if (actionType === 'exchange') {
+            state.bankrollAnte -= 1.0;
+            box.hasExchangedOrBought = true;
+            const toReplace = [...box.selectedCardIndices].sort((a, b) => b - a);
+            for (const idx of toReplace) {
+                box.cards[idx] = state.deck.pop();
+            }
+            box.selectedCardIndices.clear();
+            recomputeActiveBoxEV();
+            renderAll();
+        }
+    };
+
+    function resolveShowdown() {
+        state.phase = 'showdown';
+        while (state.dealerCards.length < 5) {
+            state.dealerCards.push(state.deck.pop());
+        }
+        const dealerEval = evaluate5Cards(state.dealerCards);
+
+        for (const box of state.boxes) {
+            if (!box.enabled || box.status === 'folded') continue;
+
+            const pEval = evaluateRussianHand(box.cards);
+            let netDelta = 0;
+            let notes = [];
+
+            if (dealerEval.rank === 0) {
+                // Нет игры у дилера
+                netDelta += 1.0;
+                notes.push('Нет игры у дилера (+1 A)');
+                if (box.insuranceAnte > 0) {
+                    netDelta += box.insuranceAnte;
+                    notes.push(`Страховка +${box.insuranceAnte.toFixed(1)} A`);
+                }
+            } else {
+                // У дилера есть игра
+                if (box.insuranceAnte > 0) {
+                    netDelta -= box.insuranceAnte;
+                    notes.push(`Страховка −${box.insuranceAnte.toFixed(1)} A`);
+                }
+                if (pEval.primary.score > dealerEval.score) {
+                    const winAmt = 2 * pEval.totalPayout;
+                    netDelta += winAmt;
+                    notes.push(`Победа +${winAmt.toFixed(1)} A`);
+                } else if (pEval.primary.score < dealerEval.score) {
+                    netDelta -= 3.0;
+                    notes.push('Проигрыш −3.0 A');
+                } else {
+                    notes.push('Ничья 0.0 A');
+                }
+            }
+
+            state.bankrollAnte += netDelta;
+            box.status = 'done';
+            const sign = netDelta > 0 ? '+' : '';
+            box.resultText = `${sign}${netDelta.toFixed(1)} A (${notes.join(', ')})`;
+        }
+
+        state.history.unshift(...state.currentHandSteps);
+        renderAll();
+    }
+
+    /* ==================== BUILDER MODE ==================== */
+    function setupBuilderBoard() {
+        state.deck = createDeck();
+        state.dealerCards = [state.deck[12]]; // Ace of spades
+        for (const b of state.boxes) {
+            b.selectedCardIndices.clear();
+            b.hasExchangedOrBought = false;
+            b.insuranceAnte = 0;
+            b.resultText = '';
+            if (b.enabled) {
+                b.cards = state.deck.slice(b.index * 5, b.index * 5 + 5);
+                b.status = 'playing';
+            } else {
+                b.cards = [];
+                b.status = 'waiting';
+            }
+        }
+        state.phase = 'decision_boxes';
+        state.activeBoxIndex = state.boxes.findIndex(b => b.enabled);
+        recomputeActiveBoxEV();
+        renderBuilderControls();
+        renderAll();
+    }
+
+    function renderBuilderControls() {
+        const targetsEl = document.getElementById('builder-target-buttons');
+        const deckEl = document.getElementById('builder-deck-grid');
+        if (!targetsEl || !deckEl) return;
+
+        const targets = [{ id: 'dealer_0', label: 'Карта дилера' }];
+        state.boxes.forEach(b => {
+            if (b.enabled) {
+                b.cards.forEach((_, idx) => {
+                    targets.push({ id: `box_${b.index}_${idx}`, label: `Б${b.index + 1}-К${idx + 1}` });
+                });
+            }
+        });
+
+        targetsEl.innerHTML = '';
+        targets.forEach(t => {
+            const btn = document.createElement('button');
+            btn.className = `chip-preset ${state.builderTarget === t.id ? 'active' : ''}`;
+            btn.textContent = t.label;
+            btn.onclick = () => {
+                state.builderTarget = t.id;
+                renderBuilderControls();
+            };
+            targetsEl.appendChild(btn);
+        });
+
+        const used = getAllKnownCardIds();
+        const fullDeck = createDeck();
+        deckEl.innerHTML = '';
+        fullDeck.forEach(card => {
+            const btn = document.createElement('button');
+            btn.className = `deck-picker-btn ${card.isRed ? 'red' : ''}`;
+            btn.textContent = card.label;
+            btn.disabled = used.has(card.id);
+            btn.onclick = () => {
+                if (state.builderTarget === 'dealer_0') {
+                    state.dealerCards[0] = card;
+                } else if (state.builderTarget.startsWith('box_')) {
+                    const [, bIdx, cIdx] = state.builderTarget.split('_').map(Number);
+                    if (state.boxes[bIdx]) state.boxes[bIdx].cards[cIdx] = card;
+                }
+                recomputeActiveBoxEV();
+                renderBuilderControls();
+                renderAll();
+            };
+            deckEl.appendChild(btn);
+        });
+    }
+
+    /* ==================== RENDERING ==================== */
+    function renderCardEl(card, isSelected = false, onClick = null) {
+        const el = document.createElement('div');
+        el.className = `card ${card.isRed ? 'red' : 'black'} ${isSelected ? 'selected' : ''}`;
+        el.innerHTML = `
+            <div>${RANK_LABELS[card.rank]}${card.suit}</div>
+            <div class="card-center">${card.suit}</div>
+            <div style="align-self:flex-end; transform:rotate(180deg);">${RANK_LABELS[card.rank]}${card.suit}</div>
+        `;
+        if (onClick) el.onclick = onClick;
+        return el;
+    }
+
+    function renderInsurancePanel() {
+        const panel = document.getElementById('insurance-panel');
+        const presetsContainer = document.getElementById('ins-presets');
+        const box = getActiveBox();
+
+        if (state.phase !== 'decision_boxes' || !box || !box.enabled || box.status !== 'playing') {
+            panel.classList.add('hidden');
+            return;
+        }
+
+        const pEval = evaluateRussianHand(box.cards);
+        if (pEval.primary.rank < 4) {
+            panel.classList.add('hidden');
+            box.insuranceAnte = 0;
+            return;
+        }
+
+        panel.classList.remove('hidden');
+        const excludeIds = getAllKnownCardIds();
+        const boxExclude = new Set([...excludeIds].filter(id => !box.cards.some(c => c.id === id)));
+        const breakdown = calculateInsuranceBreakdown(box, state.dealerCards[0], boxExclude);
+
+        presetsContainer.innerHTML = '';
+        breakdown.options.forEach(opt => {
+            const val = opt.insAnte;
+            const isBest = Math.abs(val - breakdown.bestOption.insAnte) < 1e-6;
+            const btn = document.createElement('button');
+            btn.className = `chip-preset ${Math.abs(box.insuranceAnte - val) < 1e-6 ? 'active' : ''}`;
+            btn.textContent = val === 0
+                ? `Без страховки (${formatEV(0)})`
+                : `${val} A (${formatEV(opt.pureInsEV)})`;
+            if (isBest && state.mode !== 'exam') {
+                btn.title = 'Оптимальный размер страховки по EV';
+            }
+            btn.onclick = () => setInsurance(val);
+            presetsContainer.appendChild(btn);
+        });
+
+        const currentOpt = breakdown.options.find(o => Math.abs(o.insAnte - box.insuranceAnte) < 1e-6)
+            || { insAnte: box.insuranceAnte, pureInsEV: box.insuranceAnte * pureInsEVForUnit(breakdown.noGameProb) };
+
+        document.getElementById('ins-selected-val').textContent = `${box.insuranceAnte.toFixed(1)} A`;
+        const liveEvEl = document.getElementById('ins-live-ev');
+        if (liveEvEl) {
+            if (state.mode === 'exam') {
+                liveEvEl.textContent = 'скрыто';
+                liveEvEl.style.color = '#94a3b8';
+            } else {
+                liveEvEl.textContent = formatEV(currentOpt.pureInsEV);
+                liveEvEl.style.color = currentOpt.pureInsEV >= 0 ? '#34d399' : '#fb7185';
+            }
+        }
+
+        const analysisBox = document.getElementById('ins-analysis-box');
+        if (analysisBox) {
+            if (state.mode === 'exam') {
+                analysisBox.innerHTML = `<span style="color:#94a3b8;">В режиме «Экзамен» разбор страховки появится в разделе «Разбор ходов» после решения.</span>`;
+            } else {
+                analysisBox.innerHTML = `
+                    <div><strong>Разбор страховки (комбинация ${pEval.primary.name}, макс. ${breakdown.maxIns.toFixed(1)} A):</strong> ${breakdown.verdict}</div>
+                    <div style="margin-top:4px; color:#cbd5e1;">
+                        Шанс «Нет игры» у дилера: <strong class="mono">${(breakdown.noGameProb * 100).toFixed(0)}%</strong> •
+                        Шанс игры у дилера: <strong class="mono">${(breakdown.qualifyProb * 100).toFixed(0)}%</strong> •
+                        Рекомендуемая страховка: <strong class="mono" style="color:#fde047;">${breakdown.bestOption.insAnte.toFixed(1)} A</strong> (EV самой страховки: <span class="mono">${formatEV(breakdown.bestOption.pureInsEV)}</span>).
+                    </div>
+                `;
+            }
+        }
+    }
+
+    function renderAll() {
+        // Stats
+        const brEl = document.getElementById('stat-bankroll');
+        brEl.textContent = `${state.bankrollAnte >= 0 ? '+' : ''}${state.bankrollAnte.toFixed(2)} A`;
+        brEl.style.color = state.bankrollAnte >= 0 ? '#34d399' : '#fb7185';
+
+        const acc = state.decisionsTotal > 0 ? Math.round((state.decisionsOptimal / state.decisionsTotal) * 100) : 100;
+        document.getElementById('stat-accuracy').textContent = `${acc}%`;
+        document.getElementById('stat-ev-loss').textContent = `${state.totalEVLossAnte.toFixed(2)} A`;
+
+        // Dealer
+        const dealerRow = document.getElementById('dealer-cards');
+        dealerRow.innerHTML = '';
+        if (state.dealerCards.length > 0) {
+            dealerRow.appendChild(renderCardEl(state.dealerCards[0]));
+            if (state.phase === 'showdown') {
+                for (let i = 1; i < state.dealerCards.length; i++) {
+                    dealerRow.appendChild(renderCardEl(state.dealerCards[i]));
+                }
+                const dEval = evaluate5Cards(state.dealerCards);
+                document.getElementById('dealer-status-label').textContent = `Дилер • ${dEval.name}`;
+            } else {
+                for (let i = 0; i < 4; i++) {
+                    const back = document.createElement('div');
+                    back.className = 'card back';
+                    dealerRow.appendChild(back);
+                }
+                document.getElementById('dealer-status-label').textContent = `Дилер • Открыта ${state.dealerCards[0].label}`;
+            }
+        }
+
+        // Boxes
+        const boxesEl = document.getElementById('boxes-container');
+        boxesEl.innerHTML = '';
+        state.boxes.forEach(box => {
+            const slot = document.createElement('div');
+            const isTurn = (state.phase === 'decision_boxes' && state.activeBoxIndex === box.index && box.enabled && box.status === 'playing');
+            slot.className = `box-slot ${!box.enabled ? 'disabled' : ''} ${isTurn ? 'active-turn' : ''}`;
+
+            const hdr = document.createElement('div');
+            hdr.className = 'box-header';
+            hdr.innerHTML = `<span>Бокс #${box.index + 1}</span>`;
+
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'box-toggle';
+            toggleBtn.textContent = box.enabled ? 'Вкл' : 'Выкл';
+            toggleBtn.onclick = () => {
+                box.enabled = !box.enabled;
+                if (state.mode === 'builder') setupBuilderBoard();
+                else dealNewHand();
+            };
+            hdr.appendChild(toggleBtn);
+            slot.appendChild(hdr);
+
+            if (box.enabled && box.cards.length > 0) {
+                const cRow = document.createElement('div');
+                cRow.className = 'cards-row';
+                box.cards.forEach((c, idx) => {
+                    const sel = box.selectedCardIndices.has(idx);
+                    cRow.appendChild(renderCardEl(c, sel, isTurn ? () => {
+                        if (box.selectedCardIndices.has(idx)) box.selectedCardIndices.delete(idx);
+                        else box.selectedCardIndices.add(idx);
+                        renderAll();
+                    } : null));
+                });
+                slot.appendChild(cRow);
+
+                const pEval = evaluateRussianHand(box.cards);
+                const badge = document.createElement('div');
+                badge.className = 'box-hand-badge';
+                badge.textContent = `${pEval.primary.name}${pEval.totalPayout > 0 ? ` (${pEval.totalPayout}:1)` : ''}`;
+                slot.appendChild(badge);
+
+                if (box.resultText) {
+                    const res = document.createElement('div');
+                    res.style.cssText = 'font-size:11.5px; text-align:center; font-weight:700; color:#fde68a;';
+                    res.textContent = box.resultText;
+                    slot.appendChild(res);
+                }
+            } else {
+                const empty = document.createElement('div');
+                empty.style.cssText = 'text-align:center; color:#64748b; font-size:12px; padding:28px 0;';
+                empty.textContent = 'Бокс неактивен';
+                slot.appendChild(empty);
+            }
+
+            boxesEl.appendChild(slot);
+        });
+
+        // Insurance & Actions
+        renderInsurancePanel();
+        renderActionButtons();
+        renderHelperStrip();
+    }
+
+    function renderActionButtons() {
+        const promptEl = document.getElementById('turn-prompt');
+        const btnWrap = document.getElementById('action-buttons');
+        btnWrap.innerHTML = '';
+
+        if (state.phase === 'showdown') {
+            promptEl.textContent = 'Раздача завершена. Посмотрите итоги на боксах или начните новую.';
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'btn btn-emerald';
+            nextBtn.textContent = '▶ Следующая раздача';
+            nextBtn.onclick = () => state.mode === 'builder' ? setupBuilderBoard() : dealNewHand();
+            btnWrap.appendChild(nextBtn);
+            return;
+        }
+
+        const box = getActiveBox();
+        if (!box || !box.enabled) {
+            promptEl.textContent = 'Включите хотя бы один бокс.';
+            return;
+        }
+
+        promptEl.textContent = `Ход Бокса #${box.index + 1} (кликните по картам, чтобы выбрать для обмена)`;
+
+        const foldBtn = document.createElement('button');
+        foldBtn.className = 'btn btn-rose';
+        foldBtn.textContent = 'Сбросить (−1 A)';
+        foldBtn.onclick = () => handlePlayerAction('fold');
+
+        const betBtn = document.createElement('button');
+        betBtn.className = 'btn btn-emerald';
+        betBtn.textContent = 'Бет 2 A (Играть)';
+        betBtn.onclick = () => handlePlayerAction('bet');
+
+        btnWrap.appendChild(foldBtn);
+        btnWrap.appendChild(betBtn);
+
+        if (!box.hasExchangedOrBought && box.cards.length === 5) {
+            const exBtn = document.createElement('button');
+            exBtn.className = 'btn btn-amber';
+            exBtn.textContent = `Обменять (${box.selectedCardIndices.size}) за 1 A`;
+            exBtn.onclick = () => handlePlayerAction('exchange');
+
+            const buyBtn = document.createElement('button');
+            buyBtn.className = 'btn btn-primary';
+            buyBtn.textContent = 'Купить 6-ю карту (−1 A)';
+            buyBtn.onclick = () => handlePlayerAction('buy6');
+
+            btnWrap.appendChild(exBtn);
+            btnWrap.appendChild(buyBtn);
+        }
+    }
+
+    function renderHelperStrip() {
+        const strip = document.getElementById('table-helper-strip');
+        if (state.mode === 'exam' && state.phase === 'decision_boxes') {
+            strip.innerHTML = `<span style="color:#94a3b8;">📝 Режим «Экзамен»: EV-подсказки скрыты до завершения хода.</span>`;
+            return;
+        }
+
+        const box = getActiveBox();
+        if (state.phase === 'decision_boxes' && box && box.evData) {
+            const d = box.evData;
+            const optsHtml = d.actions.map((a, i) =>
+                `<span style="margin-right:14px; color:${i === 0 ? '#34d399' : '#cbd5e1'};">
+                    ${i === 0 ? '★ ' : ''}${a.label}: <strong class="mono">${formatEV(a.ev)}</strong>
+                </span>`
+            ).join('');
+
+            strip.innerHTML = `
+                <div><strong>EV-анализ Бокса #${box.index + 1}</strong> (вероятность «Нет игры» у дилера: <strong class="mono">${(d.dealerNoGameProb * 100).toFixed(0)}%</strong>):</div>
+                <div style="margin-top:4px;">${optsHtml}</div>
+            `;
+        } else if (state.phase === 'showdown') {
+            strip.innerHTML = `Раздача завершена. Подробная оценка каждого решения и страховки доступна в кнопке <strong>«📊 Разбор ходов»</strong>.`;
+        }
+    }
+
+    function renderHistoryModal() {
+        const el = document.getElementById('history-list');
+        if (state.history.length === 0) {
+            el.innerHTML = '<p style="color:#94a3b8;">Пока нет сыгранных решений.</p>';
+            return;
+        }
+        el.innerHTML = state.history.map(item => `
+            <div class="step-item">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <strong>${item.stage} • Карты: <span class="mono">${item.cards}</span> (Дилер: ${item.dealerUp})</strong>
+                    <span class="${item.badgeClass}">${item.gradeLabel}</span>
+                </div>
+                <div style="font-size:13px; color:#cbd5e1;">
+                    Ваш ход: <strong>${item.chosenLabel}</strong> (<span class="mono">${formatEV(item.chosenEV)}</span>) •
+                    Лучший ход: <strong>${item.bestLabel}</strong> (<span class="mono">${formatEV(item.bestEV)}</span>)
+                </div>
+                <div style="font-size:12.5px; color:#94a3b8; margin-top:4px;">${item.whyText}</div>
+            </div>
+        `).join('');
+    }
+
+    function renderLeaksModal() {
+        const el = document.getElementById('leaks-list');
+        const entries = Object.values(state.leaks);
+        el.innerHTML = entries.map(lk => `
+            <div class="step-item">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <strong>${lk.title}</strong>
+                    <span class="mono" style="color:${lk.count > 0 ? '#fb7185' : '#34d399'};">
+                        Ошибок: ${lk.count} (−${lk.loss.toFixed(2)} A)
+                    </span>
+                </div>
+                <div style="font-size:12.5px; color:#94a3b8;">${lk.tip}</div>
+            </div>
+        `).join('');
+    }
+
+    checkAuth();
+})();
+</script>
+</body>
+</html>
