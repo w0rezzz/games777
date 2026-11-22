@@ -798,9 +798,14 @@
     const _u = atob('ZXhl');
     const _p = atob('YXppbm83Nzc=');
     const AUTH_KEY = 'rp_trainer_auth_ok';
+    // sessionStorage может быть заблокирован (окно предпросмотра, приватный режим) — тогда храним в памяти
+    let memAuth = null;
+    function authGet() { try { return sessionStorage.getItem(AUTH_KEY); } catch (e) { return memAuth; } }
+    function authSet() { memAuth = '1'; try { sessionStorage.setItem(AUTH_KEY, '1'); } catch (e) {} }
+    function authClear() { memAuth = null; try { sessionStorage.removeItem(AUTH_KEY); } catch (e) {} }
 
     function checkAuth() {
-        const isOk = sessionStorage.getItem(AUTH_KEY) === '1';
+        const isOk = authGet() === '1';
         document.getElementById('auth-screen').classList.toggle('hidden', isOk);
         document.getElementById('menu-screen').classList.toggle('hidden', !isOk);
         if (!isOk) {
@@ -816,7 +821,7 @@
 
         if (loginVal === _u && passVal === _p) {
             errEl.textContent = '';
-            sessionStorage.setItem(AUTH_KEY, '1');
+            authSet();
             checkAuth();
         } else {
             errEl.textContent = 'Неверный логин или пароль';
@@ -824,7 +829,7 @@
     });
 
     window.logoutUser = function() {
-        sessionStorage.removeItem(AUTH_KEY);
+        authClear();
         document.getElementById('auth-pass').value = '';
         checkAuth();
     };
@@ -1011,44 +1016,6 @@
         return pureInsEVForUnit(noGameProb) > 0.01;
     }
 
-    // Расчёт EV прямого бета (2 A) относительно текущего состояния бокса (с учётом уже потраченного sunkCost)
-    function simulateShowdownEV(playerCards, dealerUpCard, excludeIds, sunkCost = 1.0, simsCount = 500) {
-        const pEval = evaluateRussianHand(playerCards);
-        const known = new Set([...playerCards.map(c => c.id), dealerUpCard.id, ...excludeIds]);
-        const remDeck = createDeck().filter(c => !known.has(c.id));
-        const rng = createSeededRng(hashCardsSeed([...playerCards, dealerUpCard], Math.round(sunkCost * 100)));
-
-        let totalNetProfit = 0;
-        let noGameCount = 0;
-        const extraExchangeCost = Math.max(0, sunkCost - 1.0);
-
-        for (let i = 0; i < simsCount; i++) {
-            const hole = pickRandomCardsSeeded(remDeck, 4, rng);
-            const dEval = evaluate5Cards([dealerUpCard, ...hole]);
-            if (dEval.rank === 0) {
-                noGameCount++;
-                // Дилер без игры: Анте (1 A) оплачивается 1:1 (прибыль +1.0 A), минус стоимость обмена/докупа
-                totalNetProfit += (1.0 - extraExchangeCost);
-            } else {
-                if (pEval.primary.score > dEval.score) {
-                    // Победа: +1.0 A по Анте + (2.0 * payout) по Бету − стоимость обмена/докупа
-                    totalNetProfit += (1.0 + 2.0 * pEval.totalPayout) - extraExchangeCost;
-                } else if (pEval.primary.score < dEval.score) {
-                    // Проигрыш: теряем Анте (1 A) + Бет (2 A) + стоимость обмена/докупа
-                    totalNetProfit -= (3.0 + extraExchangeCost);
-                } else {
-                    // Ничья: возврат Анте и Бета (0 A по основной ставке), теряем только стоимость обмена/докупа
-                    totalNetProfit -= extraExchangeCost;
-                }
-            }
-        }
-
-        return {
-            evBet: totalNetProfit / simsCount,
-            dealerNoGameProb: noGameCount / simsCount
-        };
-    }
-
     function getAll31ExchangeSubsets() {
         const subsets = [];
         for (let mask = 1; mask < 32; mask++) {
@@ -1063,100 +1030,189 @@
 
     const ALL_EXCHANGE_SUBSETS = getAll31ExchangeSubsets();
 
-    function evaluateSpecificExchange(boxCards, dropIndices, dealerUpCard, excludeIds, trials = 90) {
-        const kept = boxCards.filter((_, idx) => !dropIndices.includes(idx));
-        const known = new Set([...boxCards.map(c => c.id), dealerUpCard.id, ...excludeIds]);
-        const remDeck = createDeck().filter(c => !known.has(c.id));
-        const maskSeed = dropIndices.reduce((acc, idx) => acc | (1 << idx), 0);
-        const rng = createSeededRng(hashCardsSeed([...boxCards, dealerUpCard], maskSeed * 7919));
+    /* ---------- БЛОК 1. Точный движок (вместо Монте-Карло) ---------- */
+    const FULL_DECK = createDeck();
+    const EXACT_LIMIT = 20000;   // до этого числа добора считаем ВСЕ комбинации
+    const SAMPLE_N = 6000;       // иначе — фиксированная детерминированная выборка
 
-        let sumEV = 0;
-        for (let t = 0; t < trials; t++) {
-            const drawn = pickRandomCardsSeeded(remDeck, dropIndices.length, rng);
-            const newHand = [...kept, ...drawn];
-            // После обмена за 1 A: либо фолд (итого −2.00 A), либо бет (sunkCost = 2.0 A)
-            const sd = simulateShowdownEV(newHand, dealerUpCard, excludeIds, 2.0, 40);
-            sumEV += Math.max(-2.0, sd.evBet);
+    function combCount(n, k) {
+        let r = 1;
+        for (let i = 1; i <= k; i++) r = r * (n - k + i) / i;
+        return Math.round(r);
+    }
+
+    // fn получает ПЕРЕИСПОЛЬЗУЕМЫЙ массив — копируйте, если нужно сохранить
+    function forEachCombo(arr, k, fn) {
+        const n = arr.length, out = new Array(k);
+        (function rec(start, d) {
+            if (d === k) { fn(out); return; }
+            for (let i = start; i <= n - (k - d); i++) { out[d] = arr[i]; rec(i + 1, d + 1); }
+        })(0, 0);
+    }
+
+    function forDraws(deck, k, rng, fn) {
+        if (combCount(deck.length, k) <= EXACT_LIMIT) {
+            let n = 0;
+            forEachCombo(deck, k, d => { fn(d); n++; });
+            return n;
         }
-        return sumEV / trials;
+        for (let i = 0; i < SAMPLE_N; i++) fn(pickRandomCardsSeeded(deck, k, rng));
+        return SAMPLE_N;
+    }
+
+    // Точное распределение руки дилера: все C(m,4) добавок к открытой карте
+    function buildDealerDist(dealerUp, deadIds) {
+        const rem = FULL_DECK.filter(c => c.id !== dealerUp.id && !deadIds.has(c.id));
+        const scores = [];
+        let noGame = 0, total = 0;
+        forEachCombo(rem, 4, h => {
+            const e = evaluate5Cards([dealerUp, h[0], h[1], h[2], h[3]]);
+            total++;
+            if (e.rank === 0) noGame++; else scores.push(e.score);
+        });
+        return { scores: Float64Array.from(scores).sort(), noGame, total };
+    }
+
+    function lowerBound(a, x) { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < x) lo = m + 1; else hi = m; } return lo; }
+    function upperBound(a, x) { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] <= x) lo = m + 1; else hi = m; } return lo; }
+
+    // EV бета (2 A) для руки; sunk = Анте + уже уплаченный обмен
+    function handBetEV(dist, cards, sunk) {
+        const p = evaluateRussianHand(cards);
+        const extra = Math.max(0, sunk - 1.0);
+        const N = dist.total, S = dist.scores;
+        const lt = lowerBound(S, p.primary.score), le = upperBound(S, p.primary.score);
+        const pNG = dist.noGame / N, pWin = lt / N, pTie = (le - lt) / N, pLose = (S.length - le) / N;
+        return pNG * (1 - extra)
+             + pWin * (1 + 2 * p.totalPayout - extra)
+             + pTie * (-extra)
+             + pLose * (-(3 + extra));
+    }
+
+    function evaluateSpecificExchange(boxCards, dropIdx, dist, deck) {
+        const kept = boxCards.filter((_, i) => !dropIdx.includes(i));
+        const mask = dropIdx.reduce((a, i) => a | (1 << i), 0);
+        const rng = createSeededRng(hashCardsSeed(boxCards, mask * 7919));
+        let sum = 0, n = 0;
+        forDraws(deck, dropIdx.length, rng, d => {
+            // видя добор, игрок выбирает лучшее из фолда (−2) и бета — это реальная ценность опциона
+            sum += Math.max(-2.0, handBetEV(dist, kept.concat(d), 2.0));
+            n++;
+        });
+        return sum / n;
     }
 
     function analyzeBoxDecisions(box, dealerUpCard, excludeIds) {
         const sunkCost = box.antePaid + box.exchangePaid;
-        const evFold = -sunkCost;
-        const sd = simulateShowdownEV(box.cards, dealerUpCard, excludeIds, sunkCost, 600);
-        const evBet = sd.evBet;
+        // мёртвые карты: чужие боксы, свои руки, СБРОСЫ (они входят в excludeIds через getAllKnownCardIds)
+        const dead = new Set([...excludeIds, ...box.cards.map(c => c.id)]);
+        const dist = buildDealerDist(dealerUpCard, dead);
+        const deck = FULL_DECK.filter(c => c.id !== dealerUpCard.id && !dead.has(c.id));
 
+        const evFold = -sunkCost;
+        const evBet = handBetEV(dist, box.cards, sunkCost);
         const actions = [
             { type: 'fold', label: `Сбросить (${formatEV(evFold)})`, ev: evFold },
             { type: 'bet', label: 'Бет 2 A (Играть)', ev: evBet }
         ];
 
-        // Оценка покупки 6-й карты за 1 A (если ещё не было обмена/покупки)
-        let evBuy6 = -999;
+        let evBuy6 = -999, allExchanges = [], bestExchange = null;
         if (!box.hasExchangedOrBought && box.cards.length === 5) {
-            const known = new Set([...box.cards.map(c => c.id), dealerUpCard.id, ...excludeIds]);
-            const remDeck = createDeck().filter(c => !known.has(c.id));
-            let sum6 = 0;
-            for (const extra of remDeck) {
-                const subSd = simulateShowdownEV([...box.cards, extra], dealerUpCard, excludeIds, 2.0, 36);
-                sum6 += Math.max(-2.0, subSd.evBet);
-            }
-            evBuy6 = remDeck.length > 0 ? (sum6 / remDeck.length) : -2.0;
+            let s6 = 0;
+            for (const extra of deck) s6 += Math.max(-2.0, handBetEV(dist, [...box.cards, extra], 2.0));
+            evBuy6 = deck.length ? s6 / deck.length : -2.0;
             actions.push({ type: 'buy6', label: 'Купить 6-ю карту (−1 A)', ev: evBuy6 });
-        }
 
-        // Полный перебор всех 31 вариантов обмена (1, 2, 3, 4 и 5 карт)
-        let allExchanges = [];
-        let bestExchange = null;
-        if (!box.hasExchangedOrBought && box.cards.length === 5) {
             for (const dropIdx of ALL_EXCHANGE_SUBSETS) {
-                const avgEx = evaluateSpecificExchange(box.cards, dropIdx, dealerUpCard, excludeIds, 75);
-                const item = {
+                allExchanges.push({
                     dropIndices: dropIdx,
                     dropLabels: dropIdx.map(i => box.cards[i].label).join(', '),
-                    ev: avgEx
-                };
-                allExchanges.push(item);
-            }
-            allExchanges.sort((a, b) => b.ev - a.ev);
-            bestExchange = allExchanges[0];
-
-            // Уточняем топ-4 варианта обмена с повышенной точностью (220 симуляций)
-            for (let k = 0; k < Math.min(4, allExchanges.length); k++) {
-                allExchanges[k].ev = evaluateSpecificExchange(
-                    box.cards,
-                    allExchanges[k].dropIndices,
-                    dealerUpCard,
-                    excludeIds,
-                    220
-                );
-            }
-            allExchanges.sort((a, b) => b.ev - a.ev);
-            bestExchange = allExchanges[0];
-
-            if (bestExchange) {
-                actions.push({
-                    type: 'exchange',
-                    label: `Обмен (${bestExchange.dropLabels})`,
-                    ev: bestExchange.ev,
-                    dropIndices: bestExchange.dropIndices
+                    ev: evaluateSpecificExchange(box.cards, dropIdx, dist, deck)
                 });
             }
+            allExchanges.sort((a, b) => b.ev - a.ev);
+            bestExchange = allExchanges[0];
+            actions.push({ type: 'exchange', label: `Обмен (${bestExchange.dropLabels})`, ev: bestExchange.ev, dropIndices: bestExchange.dropIndices });
         }
 
         actions.sort((a, b) => b.ev - a.ev);
         return {
-            evFold,
-            evBet,
-            evBuy6,
-            allExchanges,
-            bestExchange,
-            dealerNoGameProb: sd.dealerNoGameProb,
-            actions,
-            bestAction: actions[0]
+            evFold, evBet, evBuy6, allExchanges, bestExchange,
+            dealerNoGameProb: dist.noGame / dist.total,
+            actions, bestAction: actions[0]
         };
     }
+
+    /* ---------- БЛОК 2. Докуп игры дилеру (без мёртвого insurancePaid) ---------- */
+    function calculateBuyDealerEV(box, dealerCards, excludeIds) {
+        const pEval = evaluateRussianHand(box.cards);
+        const extra = box.exchangePaid;
+        const evNoBuy = 1.0 - extra;   // страховка одинакова в обеих ветках — на разницу не влияет
+
+        let hi = 0;
+        for (let i = 1; i < dealerCards.length; i++) if (dealerCards[i].rank > dealerCards[hi].rank) hi = i;
+        const replacedCard = dealerCards[hi];
+        const kept4 = dealerCards.filter((_, i) => i !== hi);
+
+        const known = new Set([...box.cards.map(c => c.id), ...dealerCards.map(c => c.id), ...excludeIds]);
+        const remDeck = FULL_DECK.filter(c => !known.has(c.id));
+        const totalExtra = extra + 1.0;
+
+        let sum = 0, stillNG = 0, lose = 0, win = 0;
+        for (const nc of remDeck) {
+            const d = evaluate5Cards([...kept4, nc]);
+            if (d.rank === 0) { stillNG++; sum += -totalExtra; }
+            else if (pEval.primary.score > d.score) { lose++; sum += 1.0 + 2.0 * pEval.totalPayout - totalExtra; }
+            else if (pEval.primary.score < d.score) { win++; sum += -(3.0 + totalExtra); }
+            else sum += -totalExtra;
+        }
+        const n = Math.max(1, remDeck.length), evBuy = sum / n;
+        return {
+            replacedCard, evNoBuy, evBuy, diff: evBuy - evNoBuy,
+            shouldBuy: evBuy > evNoBuy + 0.02,
+            probStillNoGame: stillNG / n, probQualifyAndLose: lose / n, probQualifyAndWin: win / n
+        };
+    }
+
+    /* ---------- БЛОК 3. Конструктор: без дубликатов, колода = «не на столе» ---------- */
+    function rebuildBuilderDeck() {
+        const used = getAllKnownCardIds();
+        state.deck = shuffle(createDeck().filter(c => !used.has(c.id)));
+    }
+
+    // Боксам без карт выдаёт свободные карты; ручной выбор НЕ трогает
+    function fillBuilderBoxes() {
+        for (const b of state.boxes) if (!b.enabled) { b.cards = []; b.discarded = []; b.status = 'waiting'; }
+        const used = getAllKnownCardIds();
+        const free = FULL_DECK.filter(c => !used.has(c.id));
+        for (const b of state.boxes) {
+            if (b.enabled && b.cards.length < 5) { b.cards = free.splice(0, 5); b.status = 'playing'; }
+        }
+        state.phase = 'decision_boxes';
+        state.activeBoxIndex = state.boxes.findIndex(b => b.enabled);
+        rebuildBuilderDeck();
+        recomputeActiveBoxEV();
+        renderBuilderControls();
+        renderAll();
+    }
+
+    function setupBuilderBoard() {
+        state.handNumber++;
+        state.dealerCards = [FULL_DECK[12]]; // A♠
+        state.currentHandSteps = [];
+        for (const b of state.boxes) {
+            b.selectedCardIndices.clear();
+            b.hasExchangedOrBought = false;
+            b.antePaid = 1.0; b.exchangePaid = 0.0;
+            b.insuranceAnte = 0.0; b.insurancePaid = 0.0;
+            b.buyDealerPaid = 0.0; b.boughtDealerGame = false;
+            b.evData = null; b.buyDealerData = null; b.resultText = '';
+            b.cards = []; b.discarded = [];
+            b.status = b.enabled ? 'playing' : 'waiting';
+        }
+        fillBuilderBoxes();
+    }
+
 
     function calculateInsuranceBreakdown(box, dealerUpCard, excludeIds = new Set()) {
         const pEval = evaluateRussianHand(box.cards);
@@ -1197,69 +1253,6 @@
         };
     }
 
-    // Расчёт EV докупа игры дилеру за 1 A (когда у дилера «Нет игры», а у игрока есть комбинация)
-    function calculateBuyDealerEV(box, dealerCards, excludeIds) {
-        const pEval = evaluateRussianHand(box.cards);
-        const extraExchangeCost = box.exchangePaid; // уже уплачено за обмен/6-ю карту (0 или 1 A)
-
-        // Если НЕ докупать: дилер «Нет игры» -> игрок получает +1.0 A по Анте (минус стоимость обмена)
-        const evNoBuy = (1.0 - extraExchangeCost) - box.insurancePaid;
-
-        // Находим старшую карту дилера, которую дилер меняет при докупе игры
-        let highestIdx = 0;
-        for (let i = 1; i < dealerCards.length; i++) {
-            if (dealerCards[i].rank > dealerCards[highestIdx].rank) {
-                highestIdx = i;
-            }
-        }
-        const replacedCard = dealerCards[highestIdx];
-        const keptDealer4 = dealerCards.filter((_, idx) => idx !== highestIdx);
-
-        const known = new Set([...box.cards.map(c => c.id), ...dealerCards.map(c => c.id), ...excludeIds]);
-        const remDeck = createDeck().filter(c => !known.has(c.id));
-
-        let sumBuy = 0;
-        let stillNoGame = 0;
-        let dealerQualifyAndLose = 0;
-        let dealerQualifyAndWin = 0;
-
-        for (const newCard of remDeck) {
-            const newDealer5 = [...keptDealer4, newCard];
-            const dEval = evaluate5Cards(newDealer5);
-            const totalExtra = extraExchangeCost + 1.0; // обмен + 1.0 A за докуп игры дилеру
-            if (dEval.rank === 0) {
-                stillNoGame++;
-                // Снова «Нет игры»: Анте не оплачивается (0 A), теряем обмен и 1.0 A за докуп
-                sumBuy += -totalExtra - box.insurancePaid;
-            } else if (pEval.primary.score > dEval.score) {
-                dealerQualifyAndLose++;
-                // Дилер собрал игру младше нашей: +1.0 A по Анте + (2.0 * payout) по Бету − обмен − 1.0 A докуп
-                sumBuy += (1.0 + 2.0 * pEval.totalPayout) - totalExtra - box.insurancePaid;
-            } else if (pEval.primary.score < dEval.score) {
-                dealerQualifyAndWin++;
-                // Дилер переехал нас: теряем Анте (1 A) + Бет (2 A) + обмен + 1.0 A докуп
-                sumBuy += -(3.0 + totalExtra) - box.insurancePaid;
-            } else {
-                // Ничья
-                sumBuy += -totalExtra - box.insurancePaid;
-            }
-        }
-
-        const n = Math.max(1, remDeck.length);
-        const evBuy = sumBuy / n;
-
-        return {
-            replacedCard,
-            evNoBuy,
-            evBuy,
-            diff: evBuy - evNoBuy,
-            shouldBuy: evBuy > evNoBuy + 0.02,
-            probStillNoGame: stillNoGame / n,
-            probQualifyAndLose: dealerQualifyAndLose / n,
-            probQualifyAndWin: dealerQualifyAndWin / n
-        };
-    }
-
     /* ==================== GAME STATE ==================== */
     function createInitialLeaks() {
         return {
@@ -1293,8 +1286,7 @@
         state.boxes = Array.from({ length: 5 }, (_, i) => ({
             index: i,
             enabled: i < 3,
-            cards: [],
-            selectedCardIndices: new Set(),
+            cards: [], discarded: [], selectedCardIndices: new Set(),
             status: 'waiting', // waiting | playing | bet | folded | done
             hasExchangedOrBought: false,
             antePaid: 1.0,
@@ -1321,6 +1313,7 @@
         for (const b of state.boxes) {
             if (b.enabled) {
                 for (const c of b.cards) ids.add(c.id);
+                for (const c of (b.discarded || [])) ids.add(c.id);
             }
         }
         return ids;
@@ -1420,10 +1413,7 @@
             b.boughtDealerGame = false;
             b.evData = null;
             b.buyDealerData = null;
-            b.resultText = '';
-
-            if (b.enabled) {
-                b.cards = [state.deck.pop(), state.deck.pop(), state.deck.pop(), state.deck.pop(), state.deck.pop()];
+            b.resultText = ''; b.discarded = []; if (b.enabled) { b.cards = [state.deck.pop(), state.deck.pop(), state.deck.pop(), state.deck.pop(), state.deck.pop()];
                 b.status = 'playing';
             } else {
                 b.cards = [];
@@ -1494,7 +1484,7 @@
                 ex.dropIndices.length === sortedDrop.length &&
                 ex.dropIndices.every((v, idx) => v === sortedDrop[idx])
             );
-            chosenEV = matched ? matched.ev : evaluateSpecificExchange(box.cards, sortedDrop, state.dealerCards[0], new Set(), 150);
+            chosenEV = matched ? matched.ev : data.bestAction.ev;
         }
 
         // Фиксация решения по страховке при Бете
@@ -1536,6 +1526,8 @@
                 if (insBreak.bestOption.insAnte > 0 && insBreak.bestOption.pureInsEV > 0.03) {
                     const missedInsEV = insBreak.bestOption.pureInsEV;
                     trackLeak('badInsurance', missedInsEV);
+                    state.decisionsTotal++;
+                    state.totalEVLossAnte += missedInsEV;
                     state.currentHandSteps.push({
                         handNumber: state.handNumber,
                         stage: `Бокс #${box.index + 1} (страховка от «Нет игры»)`,
@@ -1609,6 +1601,7 @@
             box.hasExchangedOrBought = true;
             const toReplace = [...box.selectedCardIndices].sort((a, b) => b - a);
             for (const idx of toReplace) {
+                box.discarded.push(box.cards[idx]);
                 box.cards[idx] = state.deck.pop();
             }
             box.selectedCardIndices.clear();
@@ -1784,38 +1777,6 @@
     }
 
     /* ==================== BUILDER MODE ==================== */
-    function setupBuilderBoard() {
-        state.handNumber++;
-        state.deck = createDeck();
-        state.dealerCards = [state.deck[12]]; // Ace of spades
-        state.currentHandSteps = [];
-
-        for (const b of state.boxes) {
-            b.selectedCardIndices.clear();
-            b.hasExchangedOrBought = false;
-            b.antePaid = 1.0;
-            b.exchangePaid = 0.0;
-            b.insuranceAnte = 0.0;
-            b.insurancePaid = 0.0;
-            b.buyDealerPaid = 0.0;
-            b.boughtDealerGame = false;
-            b.resultText = '';
-
-            if (b.enabled) {
-                b.cards = state.deck.slice(b.index * 5, b.index * 5 + 5);
-                b.status = 'playing';
-            } else {
-                b.cards = [];
-                b.status = 'waiting';
-            }
-        }
-        state.phase = 'decision_boxes';
-        state.activeBoxIndex = state.boxes.findIndex(b => b.enabled);
-        recomputeActiveBoxEV();
-        renderBuilderControls();
-        renderAll();
-    }
-
     function renderBuilderControls() {
         const targetsEl = document.getElementById('builder-target-buttons');
         const deckEl = document.getElementById('builder-deck-grid');
@@ -1857,6 +1818,7 @@
                     const [, bIdx, cIdx] = state.builderTarget.split('_').map(Number);
                     if (state.boxes[bIdx]) state.boxes[bIdx].cards[cIdx] = card;
                 }
+                rebuildBuilderDeck();
                 recomputeActiveBoxEV();
                 renderBuilderControls();
                 renderAll();
@@ -2029,8 +1991,9 @@
             toggleBtn.textContent = box.enabled ? 'Вкл' : 'Выкл';
             toggleBtn.onclick = () => {
                 box.enabled = !box.enabled;
-                if (state.mode === 'builder') setupBuilderBoard();
-                else dealNewHand();
+                if (state.mode === 'builder') {
+                    if (state.phase === 'decision_boxes') fillBuilderBoxes(); else setupBuilderBoard();
+                } else dealNewHand();
             };
             hdr.appendChild(toggleBtn);
             slot.appendChild(hdr);
