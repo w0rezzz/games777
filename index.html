@@ -7,7 +7,7 @@
     <style>
         :root {
             --bg-app: #060913;
-            --bg-panel: rgba(15, 23, 42, 0.88);
+            --bg-panel: rgba(15, 23, 42, 0.9);
             --border-subtle: rgba(148, 163, 184, 0.16);
             --border-strong: rgba(56, 189, 248, 0.35);
             --text-main: #f8fafc;
@@ -45,7 +45,7 @@
         .btn {
             border: none;
             border-radius: 10px;
-            padding: 10px 18px;
+            padding: 10px 16px;
             font-weight: 700;
             font-size: 13.5px;
             cursor: pointer;
@@ -55,7 +55,7 @@
             justify-content: center;
             gap: 8px;
             color: #fff;
-            background: rgba(30, 41, 59, 0.9);
+            background: rgba(30, 41, 59, 0.92);
             border: 1px solid rgba(148, 163, 184, 0.25);
         }
 
@@ -91,6 +91,12 @@
         .btn-rose {
             background: linear-gradient(135deg, #e11d48, #f43f5e);
             border-color: rgba(251, 113, 133, 0.5);
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, #7c3aed, #9333ea);
+            border-color: rgba(192, 132, 252, 0.5);
+            box-shadow: 0 4px 16px rgba(147, 51, 234, 0.35);
         }
 
         .btn-menu-accent {
@@ -156,7 +162,6 @@
             color: #f8fafc;
             font-size: 14px;
             outline: none;
-            transition: border-color 0.2s;
             user-select: text;
         }
 
@@ -184,7 +189,7 @@
 
         .menu-header {
             text-align: center;
-            max-width: 720px;
+            max-width: 740px;
             margin-bottom: 32px;
         }
 
@@ -231,20 +236,9 @@
             box-shadow: 0 16px 36px rgba(2, 132, 199, 0.2);
         }
 
-        .mode-icon {
-            font-size: 32px;
-        }
-
-        .mode-name {
-            font-size: 18px;
-            font-weight: 800;
-        }
-
-        .mode-desc {
-            font-size: 13px;
-            color: var(--text-muted);
-            line-height: 1.45;
-        }
+        .mode-icon { font-size: 32px; }
+        .mode-name { font-size: 18px; font-weight: 800; }
+        .mode-desc { font-size: 13px; color: var(--text-muted); line-height: 1.45; }
 
         /* ==================== GAME SCREEN ==================== */
         #game-screen {
@@ -260,7 +254,7 @@
             justify-content: space-between;
             gap: 12px;
             padding: 12px 20px;
-            background: rgba(10, 15, 28, 0.92);
+            background: rgba(10, 15, 28, 0.94);
             border-bottom: 1px solid var(--border-subtle);
             backdrop-filter: blur(12px);
             position: sticky;
@@ -308,7 +302,7 @@
 
         .poker-table {
             width: 100%;
-            max-width: 1240px;
+            max-width: 1260px;
             background: radial-gradient(ellipse at 50% 35%, var(--felt-center) 0%, var(--felt-mid) 58%, var(--felt-edge) 100%);
             border: 10px solid var(--rail-wood);
             outline: 2px solid rgba(251, 191, 36, 0.25);
@@ -335,8 +329,8 @@
             text-transform: uppercase;
             letter-spacing: 0.08em;
             color: #fde68a;
-            background: rgba(0, 0, 0, 0.35);
-            padding: 4px 12px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 5px 14px;
             border-radius: 999px;
         }
 
@@ -399,12 +393,12 @@
         /* ==================== BOXES GRID ==================== */
         .boxes-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 12px;
         }
 
         .box-slot {
-            background: rgba(4, 15, 11, 0.62);
+            background: rgba(4, 15, 11, 0.64);
             border: 1.5px solid rgba(255, 255, 255, 0.12);
             border-radius: 16px;
             padding: 12px;
@@ -414,14 +408,12 @@
             transition: all 0.2s ease;
         }
 
-        .box-slot.disabled {
-            opacity: 0.45;
-        }
+        .box-slot.disabled { opacity: 0.45; }
 
         .box-slot.active-turn {
             border-color: #fbbf24;
-            box-shadow: 0 0 24px rgba(251, 191, 36, 0.32);
-            background: rgba(6, 26, 18, 0.88);
+            box-shadow: 0 0 24px rgba(251, 191, 36, 0.35);
+            background: rgba(6, 26, 18, 0.92);
         }
 
         .box-header {
@@ -447,22 +439,21 @@
             text-align: center;
             padding: 4px 8px;
             border-radius: 8px;
-            background: rgba(15, 23, 42, 0.75);
+            background: rgba(15, 23, 42, 0.78);
             color: #38bdf8;
             font-weight: 700;
         }
 
-        .box-meta {
-            display: flex;
-            justify-content: space-between;
+        .box-invested {
             font-size: 11px;
-            color: #cbd5e1;
+            text-align: center;
+            color: #94a3b8;
         }
 
         /* ==================== CONTROLS & INSURANCE ==================== */
         .control-dock {
             width: 100%;
-            max-width: 1240px;
+            max-width: 1260px;
             background: var(--bg-panel);
             border: 1px solid var(--border-subtle);
             border-radius: 18px;
@@ -482,6 +473,16 @@
             align-items: center;
             justify-content: space-between;
             gap: 10px;
+        }
+
+        .buy-dealer-bar {
+            background: rgba(168, 85, 247, 0.12);
+            border: 1px solid rgba(192, 132, 252, 0.45);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .chip-presets {
@@ -546,7 +547,7 @@
 
         .modal-card {
             width: 100%;
-            max-width: 820px;
+            max-width: 840px;
             max-height: 86vh;
             overflow-y: auto;
             background: #0f172a;
@@ -563,10 +564,11 @@
             margin-bottom: 16px;
             padding-bottom: 12px;
             border-bottom: 1px solid var(--border-subtle);
+            gap: 10px;
         }
 
         .step-item {
-            background: rgba(15, 23, 42, 0.9);
+            background: rgba(15, 23, 42, 0.92);
             border: 1px solid var(--border-subtle);
             border-radius: 12px;
             padding: 14px;
@@ -631,7 +633,7 @@
         <div class="menu-header">
             <h1 class="menu-title">Русский Покер — EV Тренажёр</h1>
             <p class="menu-subtitle">
-                1 дилер и от 1 до 5 активных боксов • Расчёт матожидания обменов, покупки 6-й карты, игры втёмную и страховки от «Нет игры»
+                1 дилер и от 1 до 5 активных боксов • Полный цикл раздачи: обмены (1–5 карт), 6-я карта, страховка и докуп игры дилеру
             </p>
         </div>
 
@@ -640,7 +642,7 @@
                 <div class="mode-icon">🎯</div>
                 <div class="mode-name">Свободный с подсказками</div>
                 <div class="mode-desc">
-                    Полный EV-анализ в реальном времени: оптимальный обмен, покупка 6-й карты, шанс «Нет игры» дилера и расчёт страховки.
+                    Точный перебор всех 31 вариантов обмена, покупка 6-й карты, страховка от «Нет игры» и расчёт EV докупки игры дилеру.
                 </div>
             </div>
 
@@ -656,7 +658,7 @@
                 <div class="mode-icon">🛠️</div>
                 <div class="mode-name">Конструктор раздач</div>
                 <div class="mode-desc">
-                    Задайте любую карту дилера и любые карты на боксах, чтобы протестировать сложные споты и страховку сильных рук.
+                    Задайте любую карту дилера и любые карты на боксах, чтобы проверить сложные споты, страховку и докуп игры дилеру.
                 </div>
             </div>
         </div>
@@ -673,6 +675,7 @@
             <div class="topbar-left">
                 <button class="btn btn-menu-accent" onclick="returnToMenu()">☰ Меню</button>
                 <span class="mode-pill" id="current-mode-badge">🎯 Свободный с подсказками</span>
+                <span class="stat-chip">Раздача #<strong class="mono" id="stat-hand-num">1</strong></span>
             </div>
 
             <div class="topbar-right">
@@ -722,6 +725,14 @@
                     <div id="ins-analysis-box" style="width:100%; margin-top:6px; padding-top:8px; border-top:1px solid rgba(253,224,71,0.22); font-size:12px; line-height:1.45; color:#e2e8f0;"></div>
                 </div>
 
+                <!-- BUY DEALER GAME PANEL -->
+                <div class="buy-dealer-bar hidden" id="buy-dealer-panel">
+                    <div style="font-size:13.5px; font-weight:800; color:#e9d5ff;" id="buy-dealer-title">
+                        🔄 У дилера «Нет игры»! Докупить игру дилеру за 1 A?
+                    </div>
+                    <div style="font-size:12.5px; color:#e2e8f0; line-height:1.5;" id="buy-dealer-analysis"></div>
+                </div>
+
                 <!-- ACTION BAR -->
                 <div class="action-bar">
                     <div style="font-size:13.5px; font-weight:700; color:#f8fafc;" id="turn-prompt">
@@ -742,8 +753,11 @@
     <div id="history-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeModal('history-modal')">
         <div class="modal-card">
             <div class="modal-header">
-                <h2 style="font-size:18px; font-weight:800;">📊 Разбор ходов и страховок</h2>
-                <button class="btn" onclick="closeModal('history-modal')">✕ Закрыть</button>
+                <h2 style="font-size:18px; font-weight:800;">📊 Разбор ходов, страховок и докупа</h2>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn btn-rose" onclick="clearHistory()">🗑️ Очистить историю</button>
+                    <button class="btn" onclick="closeModal('history-modal')">✕ Закрыть</button>
+                </div>
             </div>
             <div id="history-list"></div>
         </div>
@@ -762,14 +776,14 @@
     <div id="rules-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeModal('rules-modal')">
         <div class="modal-card">
             <div class="modal-header">
-                <h2 style="font-size:18px; font-weight:800;">📘 Правила Русского Покера и страховки</h2>
+                <h2 style="font-size:18px; font-weight:800;">📘 Правила Русского Покера и EV-расчётов</h2>
                 <button class="btn" onclick="closeModal('rules-modal')">✕ Закрыть</button>
             </div>
             <div style="font-size:13.5px; line-height:1.6; color:#cbd5e1; display:flex; flex-direction:column; gap:10px;">
-                <p><strong>1. Базовые ставки:</strong> Каждый активный бокс ставит <strong>Анте (1 A)</strong>. Игрок получает 5 карт, у дилера открыта 1 карта.</p>
-                <p><strong>2. Решения до шоудауна:</strong> Игрок может <strong>Сбросить</strong> (потеря 1 A), сделать <strong>Бет 2 A</strong> (подтвердить игру), <strong>Обменять</strong> от 1 до 5 карт за <strong>1 A</strong> или <strong>Купить 6-ю карту</strong> за <strong>1 A</strong>.</p>
-                <p><strong>3. Квалификация дилера:</strong> У дилера «есть игра», если его комбинация не младше <strong>Туз-Король (AK)</strong>. Если у дилера «Нет игры», игрок получает выплату <strong>1 A</strong> по Анте (если не докупил игру дилеру).</p>
-                <p><strong>4. Страховка от «Нет игры»:</strong> Доступна при комбинации от <strong>Стрита</strong> и выше. Страховка оплачивается <strong>1 к 1</strong> при «Нет игры» дилера и сгорает, если у дилера есть игра. Матожидание самой страховки: <span class="mono">EV = S × (2 × P(Нет игры) − 1)</span>.</p>
+                <p><strong>1. Базовые ставки:</strong> Каждый активный бокс ставит <strong>Анте (1 A)</strong>. Если вы сделали обмен или купили 6-ю карту (<strong>+1 A</strong>), а затем сбросили, суммарная потеря по боксу составляет <strong>−2.00 A</strong> (1 A Анте + 1 A за обмен).</p>
+                <p><strong>2. Квалификация дилера:</strong> У дилера «есть игра», если его комбинация не младше <strong>Туз-Король (AK)</strong>.</p>
+                <p><strong>3. Докуп игры дилеру (за 1 A):</strong> Если у дилера «Нет игры», а у вас есть оплачиваемая комбинация (обычно от Сета/Стрита и выше), вы можете за <strong>1 A</strong> заменить старшую карту дилера из колоды. Если у дилера соберётся игра младше вашей — вы получите выплату по таблице за Бет вместо 1 A по Анте; если у дилера снова «Нет игры» — Анте не оплачивается (0 A, минус 1 A за докуп); если дилер переедет вашу руку — вы проиграете Анте + Бет + 1 A за докуп.</p>
+                <p><strong>4. Страховка от «Нет игры»:</strong> Доступна от <strong>Стрита</strong> и выше. Оплачивается <strong>1:1</strong> при «Нет игры» дилера. Плюсова на дистанции при <span class="mono">P(Нет игры) &gt; 50%</span>.</p>
                 <p><strong>5. Таблица выплат по Бету (2 A):</strong> Роял-флеш 100:1, Стрит-флеш 50:1, Каре 20:1, Фулл-хаус 7:1, Флеш 5:1, Стрит 4:1, Сет 3:1, Две пары 2:1, Пара / AK 1:1.</p>
             </div>
         </div>
@@ -814,7 +828,7 @@
         checkAuth();
     };
 
-    /* ==================== CARDS & EVALUATOR ==================== */
+    /* ==================== DETERMINISTIC RNG & CARDS ==================== */
     const SUITS = ['♠', '♥', '♦', '♣'];
     const RANKS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
     const RANK_LABELS = {
@@ -837,6 +851,23 @@
     ];
 
     const PAYOUT_MULT = [0, 1, 1, 2, 3, 4, 5, 7, 20, 50, 100];
+
+    function createSeededRng(seed) {
+        let s = seed >>> 0;
+        return function() {
+            s = (s * 1664525 + 1013904223) >>> 0;
+            return s / 4294967296;
+        };
+    }
+
+    function hashCardsSeed(cards, extra = 0) {
+        let h = 2166136261 ^ extra;
+        for (const c of cards) {
+            h ^= (c.rank * 31 + c.suit.charCodeAt(0));
+            h = Math.imul(h, 16777619);
+        }
+        return h >>> 0;
+    }
 
     function createDeck() {
         const deck = [];
@@ -863,15 +894,18 @@
         return a;
     }
 
-    function pickRandomCards(deck, count) {
-        const copy = [...deck];
-        const res = [];
-        for (let i = 0; i < count && copy.length > 0; i++) {
-            const idx = Math.floor(Math.random() * copy.length);
-            res.push(copy[idx]);
-            copy.splice(idx, 1);
+    function pickRandomCardsSeeded(deck, count, rng) {
+        const n = deck.length;
+        const chosen = [];
+        const usedIdx = new Set();
+        while (chosen.length < count && usedIdx.size < n) {
+            const idx = Math.floor(rng() * n);
+            if (!usedIdx.has(idx)) {
+                usedIdx.add(idx);
+                chosen.push(deck[idx]);
+            }
         }
-        return res;
+        return chosen;
     }
 
     function evaluate5Cards(cards) {
@@ -951,21 +985,18 @@
     function evaluateRussianHand(cards) {
         if (cards.length <= 5) {
             const ev = evaluate5Cards(cards);
-            return { primary: ev, secondary: null, totalPayout: ev.payout };
+            return { primary: ev, totalPayout: ev.payout };
         }
-        // 6 cards: find best 5-card combo + second distinct combo if applicable
         let best = null;
         for (let skip = 0; skip < cards.length; skip++) {
             const sub = cards.filter((_, idx) => idx !== skip);
             const ev = evaluate5Cards(sub);
             if (!best || ev.score > best.score) best = ev;
         }
-        return { primary: best, secondary: null, totalPayout: best.payout };
+        return { primary: best, totalPayout: best.payout };
     }
 
-    /* ==================== MONTE CARLO & EV ENGINE ==================== */
-    const SIM_MULTIPLIER = 0.65;
-
+    /* ==================== ACCURATE MONTE CARLO & EV ENGINE ==================== */
     function formatEV(val) {
         const sign = val > 0.004 ? '+' : '';
         return `${sign}${val.toFixed(2)} A`;
@@ -979,98 +1010,128 @@
         return pureInsEVForUnit(noGameProb) > 0.01;
     }
 
-    function simulateShowdownEV(playerCards, dealerUpCard, excludeIds, isBlind = false) {
+    // Расчёт EV прямого бета (2 A) относительно текущего состояния бокса (с учётом уже потраченного sunkCost)
+    function simulateShowdownEV(playerCards, dealerUpCard, excludeIds, sunkCost = 1.0, simsCount = 500) {
         const pEval = evaluateRussianHand(playerCards);
         const known = new Set([...playerCards.map(c => c.id), dealerUpCard.id, ...excludeIds]);
         const remDeck = createDeck().filter(c => !known.has(c.id));
+        const rng = createSeededRng(hashCardsSeed([...playerCards, dealerUpCard], Math.round(sunkCost * 100)));
 
-        const sims = Math.max(260, Math.round(650 * SIM_MULTIPLIER));
-        let totalProfit = 0;
+        let totalNetProfit = 0;
         let noGameCount = 0;
 
-        for (let i = 0; i < sims; i++) {
-            const hole = pickRandomCards(remDeck, 4);
+        for (let i = 0; i < simsCount; i++) {
+            const hole = pickRandomCardsSeeded(remDeck, 4, rng);
             const dEval = evaluate5Cards([dealerUpCard, ...hole]);
             if (dEval.rank === 0) {
                 noGameCount++;
-                // Дилер без игры: втёмную при своей игре платится бонус, иначе 1 A
-                if (isBlind && pEval.primary.rank >= 1) {
-                    totalProfit += 2 * pEval.totalPayout;
-                } else {
-                    totalProfit += 1.0;
-                }
+                // Дилер без игры: Анте оплачивается 1:1 (прибыль +1 A минус дополнительные расходы на обмен/докуп)
+                totalNetProfit += (2.0 - sunkCost);
             } else {
                 if (pEval.primary.score > dEval.score) {
-                    totalProfit += 2 * pEval.totalPayout;
+                    // Победа: возврат Анте + выигрыш 2 * выплата по таблице минус дополнительные расходы на обмен/докуп
+                    totalNetProfit += (2 * pEval.totalPayout) - (sunkCost - 1.0);
                 } else if (pEval.primary.score < dEval.score) {
-                    totalProfit -= 3.0; // 1 Ante + 2 Bet
+                    // Проигрыш: теряем sunkCost (Анте + обмен) и Бет (2 A)
+                    totalNetProfit -= (sunkCost + 2.0);
+                } else {
+                    // Ничья: возврат Анте и Бета, но расходы на обмен (sunkCost - 1) не возвращаются
+                    totalNetProfit -= (sunkCost - 1.0);
                 }
             }
         }
 
         return {
-            evBet: totalProfit / sims,
-            dealerNoGameProb: noGameCount / sims
+            evBet: totalNetProfit / simsCount,
+            dealerNoGameProb: noGameCount / simsCount
         };
     }
 
+    function getAll31ExchangeSubsets() {
+        const subsets = [];
+        for (let mask = 1; mask < 32; mask++) {
+            const indices = [];
+            for (let bit = 0; bit < 5; bit++) {
+                if (mask & (1 << bit)) indices.push(bit);
+            }
+            subsets.push(indices);
+        }
+        return subsets;
+    }
+
+    const ALL_EXCHANGE_SUBSETS = getAll31ExchangeSubsets();
+
+    function evaluateSpecificExchange(boxCards, dropIndices, dealerUpCard, excludeIds, trials = 90) {
+        const kept = boxCards.filter((_, idx) => !dropIndices.includes(idx));
+        const known = new Set([...boxCards.map(c => c.id), dealerUpCard.id, ...excludeIds]);
+        const remDeck = createDeck().filter(c => !known.has(c.id));
+        const maskSeed = dropIndices.reduce((acc, idx) => acc | (1 << idx), 0);
+        const rng = createSeededRng(hashCardsSeed([...boxCards, dealerUpCard], maskSeed * 7919));
+
+        let sumEV = 0;
+        for (let t = 0; t < trials; t++) {
+            const drawn = pickRandomCardsSeeded(remDeck, dropIndices.length, rng);
+            const newHand = [...kept, ...drawn];
+            // После обмена за 1 A: либо фолд (итого −2.00 A), либо бет (sunkCost = 2.0 A)
+            const sd = simulateShowdownEV(newHand, dealerUpCard, excludeIds, 2.0, 40);
+            sumEV += Math.max(-2.0, sd.evBet);
+        }
+        return sumEV / trials;
+    }
+
     function analyzeBoxDecisions(box, dealerUpCard, excludeIds) {
-        const sd = simulateShowdownEV(box.cards, dealerUpCard, excludeIds, box.isBlind);
-        const evFold = -1.0;
+        const sunkCost = box.antePaid + box.exchangePaid;
+        const evFold = -sunkCost;
+        const sd = simulateShowdownEV(box.cards, dealerUpCard, excludeIds, sunkCost, 600);
         const evBet = sd.evBet;
 
         const actions = [
-            { type: 'fold', label: 'Сбросить (−1.00 A)', ev: evFold },
+            { type: 'fold', label: `Сбросить (${formatEV(evFold)})`, ev: evFold },
             { type: 'bet', label: 'Бет 2 A (Играть)', ev: evBet }
         ];
 
-        // Оценка покупки 6-й карты (только если ещё 5 карт и не было обмена)
+        // Оценка покупки 6-й карты за 1 A (если ещё не было обмена/покупки)
         let evBuy6 = -999;
         if (!box.hasExchangedOrBought && box.cards.length === 5) {
             const known = new Set([...box.cards.map(c => c.id), dealerUpCard.id, ...excludeIds]);
             const remDeck = createDeck().filter(c => !known.has(c.id));
-            const sampleCards = pickRandomCards(remDeck, Math.min(18, remDeck.length));
             let sum6 = 0;
-            for (const extra of sampleCards) {
-                const subSd = simulateShowdownEV([...box.cards, extra], dealerUpCard, excludeIds, false);
-                sum6 += Math.max(-1.0, subSd.evBet) - 1.0;
+            for (const extra of remDeck) {
+                const subSd = simulateShowdownEV([...box.cards, extra], dealerUpCard, excludeIds, 2.0, 36);
+                sum6 += Math.max(-2.0, subSd.evBet);
             }
-            evBuy6 = sampleCards.length > 0 ? (sum6 / sampleCards.length) : -2.0;
+            evBuy6 = remDeck.length > 0 ? (sum6 / remDeck.length) : -2.0;
             actions.push({ type: 'buy6', label: 'Купить 6-ю карту (−1 A)', ev: evBuy6 });
         }
 
-        // Оценка лучшего обмена (1-2 слабейшие карты)
+        // Полный перебор всех 31 вариантов обмена (1, 2, 3, 4 и 5 карт)
+        let allExchanges = [];
         let bestExchange = null;
         if (!box.hasExchangedOrBought && box.cards.length === 5) {
-            const indices = [0, 1, 2, 3, 4];
-            const candidates = [];
-            for (let i = 0; i < 5; i++) candidates.push([i]);
-            for (let i = 0; i < 5; i++) {
-                for (let j = i + 1; j < 5; j++) candidates.push([i, j]);
+            for (const dropIdx of ALL_EXCHANGE_SUBSETS) {
+                const avgEx = evaluateSpecificExchange(box.cards, dropIdx, dealerUpCard, excludeIds, 75);
+                const item = {
+                    dropIndices: dropIdx,
+                    dropLabels: dropIdx.map(i => box.cards[i].label).join(', '),
+                    ev: avgEx
+                };
+                allExchanges.push(item);
             }
+            allExchanges.sort((a, b) => b.ev - a.ev);
+            bestExchange = allExchanges[0];
 
-            const known = new Set([...box.cards.map(c => c.id), dealerUpCard.id, ...excludeIds]);
-            const remDeck = createDeck().filter(c => !known.has(c.id));
-
-            for (const dropIdx of candidates.slice(0, 10)) {
-                const kept = box.cards.filter((_, idx) => !dropIdx.includes(idx));
-                let sumEx = 0;
-                const trials = 16;
-                for (let t = 0; t < trials; t++) {
-                    const drawn = pickRandomCards(remDeck, dropIdx.length);
-                    const newHand = [...kept, ...drawn];
-                    const subSd = simulateShowdownEV(newHand, dealerUpCard, excludeIds, false);
-                    sumEx += Math.max(-1.0, subSd.evBet) - 1.0;
-                }
-                const avgEx = sumEx / trials;
-                if (!bestExchange || avgEx > bestExchange.ev) {
-                    bestExchange = {
-                        dropIndices: dropIdx,
-                        dropLabels: dropIdx.map(i => box.cards[i].label).join(', '),
-                        ev: avgEx
-                    };
-                }
+            // Уточняем топ-4 варианта обмена с повышенной точностью (220 симуляций)
+            for (let k = 0; k < Math.min(4, allExchanges.length); k++) {
+                allExchanges[k].ev = evaluateSpecificExchange(
+                    box.cards,
+                    allExchanges[k].dropIndices,
+                    dealerUpCard,
+                    excludeIds,
+                    220
+                );
             }
+            allExchanges.sort((a, b) => b.ev - a.ev);
+            bestExchange = allExchanges[0];
 
             if (bestExchange) {
                 actions.push({
@@ -1087,6 +1148,7 @@
             evFold,
             evBet,
             evBuy6,
+            allExchanges,
             bestExchange,
             dealerNoGameProb: sd.dealerNoGameProb,
             actions,
@@ -1103,24 +1165,6 @@
         const noGameProb = box.evData ? box.evData.dealerNoGameProb : 0.45;
         const qualifyProb = 1 - noGameProb;
 
-        const knownIds = new Set([...box.cards.map(c => c.id), dealerUpCard.id, ...excludeIds]);
-        const remDeck = createDeck().filter(c => !knownIds.has(c.id));
-        let winWhenQualify = 0;
-        const simCount = Math.max(250, Math.round(650 * SIM_MULTIPLIER));
-        let qualifiedSamples = 0;
-
-        for (let i = 0; i < simCount; i++) {
-            const hole = pickRandomCards(remDeck, 4);
-            const dEval = evaluate5Cards([dealerUpCard, ...hole]);
-            if (dEval.rank > 0) {
-                qualifiedSamples++;
-                if (pEval.primary.score > dEval.score) {
-                    winWhenQualify++;
-                }
-            }
-        }
-        const winCondQualify = qualifiedSamples > 0 ? (winWhenQualify / qualifiedSamples) : 0.35;
-
         const evaluatedOptions = candidates.map(insAnte => {
             const pureInsEV = insAnte * (2.0 * noGameProb - 1.0);
             const evWithBetAndIns = (box.evData ? box.evData.evBet : 0) + pureInsEV;
@@ -1136,9 +1180,7 @@
 
         let verdict = '';
         if (pureInsEVPositive(noGameProb)) {
-            verdict = `Нет игры дилера (~${(noGameProb * 100).toFixed(0)}%) делает страховку математически плюсовой (+EV). Оптимально поставить <strong>${bestOption.insAnte.toFixed(1)} A</strong>.`;
-        } else if (pEval.primary.rank >= 6 && winCondQualify < 0.55) {
-            verdict = `У вас сильная комбинация (<strong>${pEval.primary.name}</strong>), но если дилер соберёт игру, она может проиграть старшей руке — страховка защищает выплату при «Нет игры» дилера, но имеет отрицательное матожидание (${formatEV(pureInsEVForUnit(noGameProb))} на 1 A).`;
+            verdict = `Нет игры дилера (~${(noGameProb * 100).toFixed(0)}%) делает страховку плюсовой (+EV). Оптимально поставить <strong>${bestOption.insAnte.toFixed(1)} A</strong>.`;
         } else {
             verdict = `При вероятности «Нет игры» ~${(noGameProb * 100).toFixed(0)}% страховка имеет отрицательное EV (${formatEV(pureInsEVForUnit(noGameProb))} на 1 A). Без страховки выгоднее на дистанции.`;
         }
@@ -1147,17 +1189,80 @@
             maxIns,
             noGameProb,
             qualifyProb,
-            winCondQualify,
             options: evaluatedOptions,
             bestOption,
             verdict
         };
     }
 
+    // Расчёт EV докупа игры дилеру за 1 A (когда у дилера «Нет игры», а у игрока есть комбинация)
+    function calculateBuyDealerEV(box, dealerCards, excludeIds) {
+        const pEval = evaluateRussianHand(box.cards);
+        const sunkCost = box.antePaid + box.exchangePaid; // уже вложено в бокс (1 A или 2 A)
+
+        // Если НЕ докупать: дилер «Нет игры» -> игрок получает +1 A за Анте (минус обмен и проигранная страховка, если была)
+        const evNoBuy = (2.0 - sunkCost) - box.insurancePaid;
+
+        // Находим старшую карту дилера, которую дилер меняет при докупе игры
+        let highestIdx = 0;
+        for (let i = 1; i < dealerCards.length; i++) {
+            if (dealerCards[i].rank > dealerCards[highestIdx].rank) {
+                highestIdx = i;
+            }
+        }
+        const replacedCard = dealerCards[highestIdx];
+        const keptDealer4 = dealerCards.filter((_, idx) => idx !== highestIdx);
+
+        const known = new Set([...box.cards.map(c => c.id), ...dealerCards.map(c => c.id), ...excludeIds]);
+        const remDeck = createDeck().filter(c => !known.has(c.id));
+
+        let sumBuy = 0;
+        let stillNoGame = 0;
+        let dealerQualifyAndLose = 0;
+        let dealerQualifyAndWin = 0;
+
+        for (const newCard of remDeck) {
+            const newDealer5 = [...keptDealer4, newCard];
+            const dEval = evaluate5Cards(newDealer5);
+            // Цена докупа 1 A платится всегда
+            if (dEval.rank === 0) {
+                stillNoGame++;
+                // Снова «Нет игры»: Анте не оплачивается (0 A), теряем только 1 A за докуп + прошлые расходы
+                sumBuy += (1.0 - sunkCost) - 1.0 - box.insurancePaid;
+            } else if (pEval.primary.score > dEval.score) {
+                dealerQualifyAndLose++;
+                // Дилер собрал игру младше нашей: получаем полную выплату 2 * выплата по таблице минус 1 A за докуп
+                sumBuy += (2 * pEval.totalPayout) - (sunkCost - 1.0) - 1.0 - box.insurancePaid;
+            } else if (pEval.primary.score < dEval.score) {
+                dealerQualifyAndWin++;
+                // Дилер переехал нас: теряем Анте + обмен + Бет 2 A + 1 A за докуп
+                sumBuy += -(sunkCost + 2.0 + 1.0) - box.insurancePaid;
+            } else {
+                // Ничья
+                sumBuy += -(sunkCost - 1.0 + 1.0) - box.insurancePaid;
+            }
+        }
+
+        const n = Math.max(1, remDeck.length);
+        const evBuy = sumBuy / n;
+
+        return {
+            replacedCard,
+            evNoBuy,
+            evBuy,
+            diff: evBuy - evNoBuy,
+            shouldBuy: evBuy > evNoBuy + 0.02,
+            probStillNoGame: stillNoGame / n,
+            probQualifyAndLose: dealerQualifyAndLose / n,
+            probQualifyAndWin: dealerQualifyAndWin / n
+        };
+    }
+
     /* ==================== GAME STATE ==================== */
     const state = {
         mode: 'hints',
-        phase: 'idle',
+        phase: 'idle', // idle | decision_boxes | buy_dealer_stage | showdown
+        handNumber: 0,
         deck: [],
         dealerCards: [],
         boxes: [],
@@ -1170,9 +1275,10 @@
         currentHandSteps: [],
         leaks: {
             badFold: { count: 0, loss: 0, title: 'Ошибочный фолд плюсовой руки', tip: 'Проверяйте эквити против открытой карты дилера — часто AK и слабые пары выгоднее играть бетом.' },
-            badCall: { count: 0, loss: 0, title: 'Минусовой бет (коллирование со слабой рукой)', tip: 'Руки без совпадений и ниже AK против сильной карты дилера лучше сбрасывать или улучшать обменом.' },
-            missedExchange: { count: 0, loss: 0, title: 'Упущенный выгодный обмен / 6-я карта', tip: 'Дро на стрит или флеш против высокой карты дилера часто дают больше EV через покупку или обмен.' },
-            badInsurance: { count: 0, loss: 0, title: 'Ошибки при страховке от «Нет игры»', tip: 'Страховка 1:1 плюсова только когда вероятность «Нет игры» у дилера превышает 50%.' }
+            badCall: { count: 0, loss: 0, title: 'Минусовой бет со слабой рукой', tip: 'Мусорные руки без дро против сильной карты дилера лучше сбрасывать или менять.' },
+            missedExchange: { count: 0, loss: 0, title: 'Неоптимальный обмен / 6-я карта', tip: 'Не разбивайте готовую пару ради кикера, если только нет сильного стрит/флеш-дро; сравнивайте обмен с фолдом.' },
+            badInsurance: { count: 0, loss: 0, title: 'Ошибки при страховке от «Нет игры»', tip: 'Страховка 1:1 плюсова только когда вероятность «Нет игры» у дилера превышает 50%.' },
+            badBuyDealer: { count: 0, loss: 0, title: 'Ошибки при докупе игры дилеру (за 1 A)', tip: 'Докупайте игру дилеру от Стрита (4:1) и Сета (3:1), когда вероятность того, что дилер соберёт младшую игру, окупает риск его переезда.' }
         },
         builderTarget: 'dealer_0'
     };
@@ -1180,14 +1286,19 @@
     function initBoxes() {
         state.boxes = Array.from({ length: 5 }, (_, i) => ({
             index: i,
-            enabled: i < 2,
+            enabled: i < 3,
             cards: [],
             selectedCardIndices: new Set(),
             status: 'waiting', // waiting | playing | bet | folded | done
             hasExchangedOrBought: false,
-            isBlind: false,
-            insuranceAnte: 0,
+            antePaid: 1.0,
+            exchangePaid: 0.0,
+            insuranceAnte: 0.0,
+            insurancePaid: 0.0,
+            buyDealerPaid: 0.0,
+            boughtDealerGame: false,
             evData: null,
+            buyDealerData: null,
             resultText: ''
         }));
     }
@@ -1200,7 +1311,7 @@
 
     function getAllKnownCardIds() {
         const ids = new Set();
-        if (state.dealerCards[0]) ids.add(state.dealerCards[0].id);
+        for (const c of state.dealerCards) ids.add(c.id);
         for (const b of state.boxes) {
             if (b.enabled) {
                 for (const c of b.cards) ids.add(c.id);
@@ -1259,13 +1370,19 @@
         document.getElementById(id).classList.add('hidden');
     };
 
-    /* ==================== DEAL & FLOW ==================== */
+    window.clearHistory = function() {
+        state.history = [];
+        renderHistoryModal();
+    };
+
+    /* ==================== DEAL & FULL HAND FLOW ==================== */
     window.dealNewHand = function() {
         const enabledBoxes = state.boxes.filter(b => b.enabled);
         if (enabledBoxes.length === 0) {
             state.boxes[0].enabled = true;
         }
 
+        state.handNumber++;
         state.deck = shuffle(createDeck());
         state.dealerCards = [state.deck.pop()];
         state.currentHandSteps = [];
@@ -1273,9 +1390,14 @@
         for (const b of state.boxes) {
             b.selectedCardIndices.clear();
             b.hasExchangedOrBought = false;
-            b.isBlind = false;
-            b.insuranceAnte = 0;
+            b.antePaid = 1.0;
+            b.exchangePaid = 0.0;
+            b.insuranceAnte = 0.0;
+            b.insurancePaid = 0.0;
+            b.buyDealerPaid = 0.0;
+            b.boughtDealerGame = false;
             b.evData = null;
+            b.buyDealerData = null;
             b.resultText = '';
 
             if (b.enabled) {
@@ -1301,14 +1423,14 @@
         box.evData = analyzeBoxDecisions(box, state.dealerCards[0], boxExclude);
     }
 
-    function advanceToNextBoxOrShowdown() {
+    function advanceAfterBoxDecision() {
         const nextIdx = state.boxes.findIndex((b, idx) => idx > state.activeBoxIndex && b.enabled && b.status === 'playing');
         if (nextIdx !== -1) {
             state.activeBoxIndex = nextIdx;
             recomputeActiveBoxEV();
             renderAll();
         } else {
-            resolveShowdown();
+            revealDealerAndCheckBuyGame();
         }
     }
 
@@ -1332,21 +1454,25 @@
 
         if (actionType === 'fold') {
             chosenEV = data.evFold;
-            chosenLabel = 'Сбросить';
+            chosenLabel = `Сбросить (${formatEV(data.evFold)})`;
         } else if (actionType === 'buy6') {
             chosenEV = data.evBuy6;
-            chosenLabel = 'Купить 6-ю карту';
+            chosenLabel = 'Купить 6-ю карту (−1 A)';
         } else if (actionType === 'exchange') {
             const dropCount = box.selectedCardIndices.size;
             if (dropCount === 0) {
                 alert('Выберите от 1 до 5 карт кликом по картам бокса для обмена.');
                 return;
             }
-            const dropLabels = [...box.selectedCardIndices].map(i => box.cards[i].label).join(', ');
+            const sortedDrop = [...box.selectedCardIndices].sort((a, b) => a - b);
+            const dropLabels = sortedDrop.map(i => box.cards[i].label).join(', ');
             chosenLabel = `Обмен (${dropLabels})`;
-            chosenEV = (data.bestExchange && data.bestExchange.dropIndices.length === dropCount)
-                ? data.bestExchange.ev
-                : (data.bestExchange ? data.bestExchange.ev - 0.15 : data.evBet - 0.25);
+
+            const matched = data.allExchanges.find(ex =>
+                ex.dropIndices.length === sortedDrop.length &&
+                ex.dropIndices.every((v, idx) => v === sortedDrop[idx])
+            );
+            chosenEV = matched ? matched.ev : evaluateSpecificExchange(box.cards, sortedDrop, state.dealerCards[0], new Set(), 150);
         }
 
         // Фиксация решения по страховке при Бете
@@ -1359,18 +1485,13 @@
             const insLossVsBest = Math.max(0, insBreak.bestOption.evWithBetAndIns - chosenInsObj.evWithBetAndIns);
 
             const insGradeCls = classifyEVLoss(-insLossVsBest);
-            const insNote = pureInsEVPositive(insBreak.noGameProb)
-                ? `При шансе «Нет игры» ${(insBreak.noGameProb * 100).toFixed(0)}% страховка ${box.insuranceAnte.toFixed(1)} A даёт ${formatEV(chosenInsObj.pureInsEV)}.`
-                : `Страховка ${box.insuranceAnte.toFixed(1)} A имеет EV ${formatEV(chosenInsObj.pureInsEV)} при шансе «Нет игры» ${(insBreak.noGameProb * 100).toFixed(0)}% (лучше ${insBreak.bestOption.insAnte.toFixed(1)} A).`;
-
             state.decisionsTotal++;
             state.totalEVLossAnte += insLossVsBest;
             if (insGradeCls.grade === 'optimal') state.decisionsOptimal++;
-            if (insLossVsBest > 0.04) {
-                trackLeak('badInsurance', insLossVsBest);
-            }
+            if (insLossVsBest > 0.04) trackLeak('badInsurance', insLossVsBest);
 
             state.currentHandSteps.push({
+                handNumber: state.handNumber,
                 stage: `Бокс #${box.index + 1} (страховка от «Нет игры»)`,
                 cards: handSnapshot,
                 dealerUp: dealerUpStr,
@@ -1382,11 +1503,11 @@
                 grade: insGradeCls.grade,
                 badgeClass: insGradeCls.badge,
                 gradeLabel: insGradeCls.label,
-                whyText: `${insNote} ${insBreak.verdict.replace(/<[^>]+>/g, '')}`
+                whyText: `Шанс «Нет игры» дилера ${(insBreak.noGameProb * 100).toFixed(0)}%. ${insBreak.verdict.replace(/<[^>]+>/g, '')}`
             });
         } else if (actionType === 'bet' && box.insuranceAnte === 0) {
             const pEval = evaluateRussianHand(box.cards);
-            if (pEval.primary.rank >= 4) {
+            if (pEval.primary.rank >= 5) {
                 const excludeIds = getAllKnownCardIds();
                 const boxExclude = new Set([...excludeIds].filter(id => !box.cards.some(c => c.id === id)));
                 const insBreak = calculateInsuranceBreakdown(box, state.dealerCards[0], boxExclude);
@@ -1394,6 +1515,7 @@
                     const missedInsEV = insBreak.bestOption.pureInsEV;
                     trackLeak('badInsurance', missedInsEV);
                     state.currentHandSteps.push({
+                        handNumber: state.handNumber,
                         stage: `Бокс #${box.index + 1} (страховка от «Нет игры»)`,
                         cards: handSnapshot,
                         dealerUp: dealerUpStr,
@@ -1427,7 +1549,8 @@
         }
 
         state.currentHandSteps.push({
-            stage: `Бокс #${box.index + 1} (${box.hasExchangedOrBought ? 'после докупки/обмена' : '1-й ход'})`,
+            handNumber: state.handNumber,
+            stage: `Бокс #${box.index + 1} (${box.hasExchangedOrBought ? 'после обмена/6-й карты' : '1-й ход'})`,
             cards: handSnapshot,
             dealerUp: dealerUpStr,
             chosenLabel,
@@ -1441,23 +1564,26 @@
             whyText: `Против открытой карты дилера ${dealerUpStr} лучшее действие по EV — «${data.bestAction.label}» (${formatEV(bestEV)}).`
         });
 
-        // Выполнение действия
+        // Выполнение хода
         if (actionType === 'fold') {
+            const totalLost = box.antePaid + box.exchangePaid;
             box.status = 'folded';
-            box.resultText = 'Фолд (−1.00 A)';
-            state.bankrollAnte -= 1.0;
-            advanceToNextBoxOrShowdown();
+            box.resultText = box.exchangePaid > 0
+                ? `Фолд (−${totalLost.toFixed(2)} A: 1 A Анте + ${box.exchangePaid.toFixed(0)} A обмен)`
+                : `Фолд (−${totalLost.toFixed(2)} A)`;
+            state.bankrollAnte -= totalLost;
+            advanceAfterBoxDecision();
         } else if (actionType === 'bet') {
             box.status = 'bet';
-            advanceToNextBoxOrShowdown();
+            advanceAfterBoxDecision();
         } else if (actionType === 'buy6') {
-            state.bankrollAnte -= 1.0;
+            box.exchangePaid += 1.0;
             box.hasExchangedOrBought = true;
             box.cards.push(state.deck.pop());
             recomputeActiveBoxEV();
             renderAll();
         } else if (actionType === 'exchange') {
-            state.bankrollAnte -= 1.0;
+            box.exchangePaid += 1.0;
             box.hasExchangedOrBought = true;
             const toReplace = [...box.selectedCardIndices].sort((a, b) => b - a);
             for (const idx of toReplace) {
@@ -1469,50 +1595,165 @@
         }
     };
 
-    function resolveShowdown() {
-        state.phase = 'showdown';
+    /* ==================== DEALER REVEAL & BUY DEALER GAME ==================== */
+    function revealDealerAndCheckBuyGame() {
         while (state.dealerCards.length < 5) {
             state.dealerCards.push(state.deck.pop());
         }
         const dealerEval = evaluate5Cards(state.dealerCards);
 
+        // Если у дилера «Нет игры», проверяем, есть ли активные боксы в игре (status === 'bet') с комбинацией от 1 (AK) и выше
+        if (dealerEval.rank === 0) {
+            const eligibleIdx = state.boxes.findIndex(b => {
+                if (!b.enabled || b.status !== 'bet') return false;
+                const pEval = evaluateRussianHand(b.cards);
+                return pEval.primary.rank >= 1;
+            });
+
+            if (eligibleIdx !== -1) {
+                state.phase = 'buy_dealer_stage';
+                state.activeBoxIndex = eligibleIdx;
+                computeBuyDealerForActiveBox();
+                renderAll();
+                return;
+            }
+        }
+
+        finalizeShowdown();
+    }
+
+    function computeBuyDealerForActiveBox() {
+        const box = getActiveBox();
+        if (!box) return;
+        const excludeIds = getAllKnownCardIds();
+        box.buyDealerData = calculateBuyDealerEV(box, state.dealerCards, excludeIds);
+    }
+
+    window.handleBuyDealerDecision = function(wantBuy) {
+        const box = getActiveBox();
+        if (!box || state.phase !== 'buy_dealer_stage') return;
+
+        const bd = box.buyDealerData;
+        const chosenEV = wantBuy ? bd.evBuy : bd.evNoBuy;
+        const bestEV = Math.max(bd.evBuy, bd.evNoBuy);
+        const evDiff = chosenEV - bestEV;
+        const loss = Math.max(0, -evDiff);
+        const gradeObj = classifyEVLoss(evDiff);
+
+        state.decisionsTotal++;
+        state.totalEVLossAnte += loss;
+        if (gradeObj.grade === 'optimal') state.decisionsOptimal++;
+        if (loss > 0.04) trackLeak('badBuyDealer', loss);
+
+        state.currentHandSteps.push({
+            handNumber: state.handNumber,
+            stage: `Бокс #${box.index + 1} (Докупить игру дилеру)`,
+            cards: box.cards.map(c => c.label).join(' '),
+            dealerUp: state.dealerCards.map(c => c.label).join(' '),
+            chosenLabel: wantBuy ? `Докупить игру дилеру (−1 A)` : `Не докупать (взять +1 A по Анте)`,
+            chosenEV,
+            bestLabel: bd.shouldBuy ? `Докупить игру дилеру (−1 A)` : `Не докупать (взять +1 A по Анте)`,
+            bestEV,
+            diff: evDiff,
+            grade: gradeObj.grade,
+            badgeClass: gradeObj.badge,
+            gradeLabel: gradeObj.label,
+            whyText: `У дилера «Нет игры», меняется старшая карта ${bd.replacedCard.label}. Шанс, что дилер соберёт игру младше вашей: ${(bd.probQualifyAndLose * 100).toFixed(0)}%, снова «Нет игры»: ${(bd.probStillNoGame * 100).toFixed(0)}%, переедет вас: ${(bd.probQualifyAndWin * 100).toFixed(0)}%.`
+        });
+
+        box.boughtDealerGame = wantBuy;
+        if (wantBuy) {
+            box.buyDealerPaid = 1.0;
+        }
+
+        // Ищем следующий бокс, который тоже может докупить игру дилеру
+        const nextEligible = state.boxes.findIndex((b, idx) => {
+            if (idx <= state.activeBoxIndex || !b.enabled || b.status !== 'bet') return false;
+            return evaluateRussianHand(b.cards).primary.rank >= 1;
+        });
+
+        if (nextEligible !== -1) {
+            state.activeBoxIndex = nextEligible;
+            computeBuyDealerForActiveBox();
+            renderAll();
+        } else {
+            finalizeShowdown();
+        }
+    };
+
+    function finalizeShowdown() {
+        state.phase = 'showdown';
+        const initialDealerEval = evaluate5Cards(state.dealerCards);
+
+        // Проверяем, докупил ли хотя бы один бокс игру дилеру
+        const anyBoughtDealer = state.boxes.some(b => b.enabled && b.status === 'bet' && b.boughtDealerGame);
+        let finalDealerCards = [...state.dealerCards];
+        let replacedCardLabel = '';
+
+        if (initialDealerEval.rank === 0 && anyBoughtDealer) {
+            let highestIdx = 0;
+            for (let i = 1; i < finalDealerCards.length; i++) {
+                if (finalDealerCards[i].rank > finalDealerCards[highestIdx].rank) {
+                    highestIdx = i;
+                }
+            }
+            replacedCardLabel = finalDealerCards[highestIdx].label;
+            finalDealerCards[highestIdx] = state.deck.pop();
+            state.dealerCards = finalDealerCards;
+        }
+
+        const finalDealerEval = evaluate5Cards(state.dealerCards);
+
         for (const box of state.boxes) {
             if (!box.enabled || box.status === 'folded') continue;
 
             const pEval = evaluateRussianHand(box.cards);
+            const extraCosts = box.exchangePaid + box.buyDealerPaid; // обмен (0 или 1) + докуп дилеру (0 или 1)
             let netDelta = 0;
             let notes = [];
 
-            if (dealerEval.rank === 0) {
-                // Нет игры у дилера
-                netDelta += 1.0;
-                notes.push('Нет игры у дилера (+1 A)');
-                if (box.insuranceAnte > 0) {
+            // 1. Расчёт страховки по первоначальному раскладу дилера
+            if (box.insuranceAnte > 0) {
+                if (initialDealerEval.rank === 0) {
                     netDelta += box.insuranceAnte;
                     notes.push(`Страховка +${box.insuranceAnte.toFixed(1)} A`);
-                }
-            } else {
-                // У дилера есть игра
-                if (box.insuranceAnte > 0) {
+                } else {
                     netDelta -= box.insuranceAnte;
                     notes.push(`Страховка −${box.insuranceAnte.toFixed(1)} A`);
                 }
-                if (pEval.primary.score > dealerEval.score) {
+            }
+
+            // 2. Расчёт основного банка
+            if (initialDealerEval.rank === 0 && !box.boughtDealerGame) {
+                // Игрок НЕ докупал игру дилеру -> получает +1 A по Анте (минус обмен, если был)
+                netDelta += (1.0 - box.exchangePaid);
+                notes.push('Нет игры у дилера (+1 A)');
+            } else {
+                // Либо у дилера изначально была игра, либо игрок докупил игру дилеру (и открылась новая 5-я карта дилера)
+                if (finalDealerEval.rank === 0) {
+                    // После докупа у дилера снова «Нет игры»: Анте не оплачивается, игрок теряет обмен и 1 A за докуп
+                    netDelta -= extraCosts;
+                    notes.push(`После докупа (${replacedCardLabel}) снова «Нет игры» (0 A)`);
+                } else if (pEval.primary.score > finalDealerEval.score) {
                     const winAmt = 2 * pEval.totalPayout;
-                    netDelta += winAmt;
+                    netDelta += winAmt - extraCosts;
                     notes.push(`Победа +${winAmt.toFixed(1)} A`);
-                } else if (pEval.primary.score < dealerEval.score) {
-                    netDelta -= 3.0;
+                } else if (pEval.primary.score < finalDealerEval.score) {
+                    netDelta -= (box.antePaid + 2.0 + extraCosts);
                     notes.push('Проигрыш −3.0 A');
                 } else {
+                    netDelta -= extraCosts;
                     notes.push('Ничья 0.0 A');
                 }
             }
 
+            if (box.exchangePaid > 0) notes.push(`Обмен −${box.exchangePaid.toFixed(0)} A`);
+            if (box.buyDealerPaid > 0) notes.push(`Докуп дилеру −${box.buyDealerPaid.toFixed(0)} A`);
+
             state.bankrollAnte += netDelta;
             box.status = 'done';
             const sign = netDelta > 0 ? '+' : '';
-            box.resultText = `${sign}${netDelta.toFixed(1)} A (${notes.join(', ')})`;
+            box.resultText = `${sign}${netDelta.toFixed(2)} A (${notes.join(', ')})`;
         }
 
         state.history.unshift(...state.currentHandSteps);
@@ -1521,13 +1762,22 @@
 
     /* ==================== BUILDER MODE ==================== */
     function setupBuilderBoard() {
+        state.handNumber++;
         state.deck = createDeck();
         state.dealerCards = [state.deck[12]]; // Ace of spades
+        state.currentHandSteps = [];
+
         for (const b of state.boxes) {
             b.selectedCardIndices.clear();
             b.hasExchangedOrBought = false;
-            b.insuranceAnte = 0;
+            b.antePaid = 1.0;
+            b.exchangePaid = 0.0;
+            b.insuranceAnte = 0.0;
+            b.insurancePaid = 0.0;
+            b.buyDealerPaid = 0.0;
+            b.boughtDealerGame = false;
             b.resultText = '';
+
             if (b.enabled) {
                 b.cards = state.deck.slice(b.index * 5, b.index * 5 + 5);
                 b.status = 'playing';
@@ -1616,7 +1866,8 @@
         }
 
         const pEval = evaluateRussianHand(box.cards);
-        if (pEval.primary.rank < 4) {
+        // Страховка доступна от Стрита (rank >= 5)
+        if (pEval.primary.rank < 5) {
             panel.classList.add('hidden');
             box.insuranceAnte = 0;
             return;
@@ -1630,15 +1881,11 @@
         presetsContainer.innerHTML = '';
         breakdown.options.forEach(opt => {
             const val = opt.insAnte;
-            const isBest = Math.abs(val - breakdown.bestOption.insAnte) < 1e-6;
             const btn = document.createElement('button');
             btn.className = `chip-preset ${Math.abs(box.insuranceAnte - val) < 1e-6 ? 'active' : ''}`;
             btn.textContent = val === 0
                 ? `Без страховки (${formatEV(0)})`
                 : `${val} A (${formatEV(opt.pureInsEV)})`;
-            if (isBest && state.mode !== 'exam') {
-                btn.title = 'Оптимальный размер страховки по EV';
-            }
             btn.onclick = () => setInsurance(val);
             presetsContainer.appendChild(btn);
         });
@@ -1667,7 +1914,6 @@
                     <div><strong>Разбор страховки (комбинация ${pEval.primary.name}, макс. ${breakdown.maxIns.toFixed(1)} A):</strong> ${breakdown.verdict}</div>
                     <div style="margin-top:4px; color:#cbd5e1;">
                         Шанс «Нет игры» у дилера: <strong class="mono">${(breakdown.noGameProb * 100).toFixed(0)}%</strong> •
-                        Шанс игры у дилера: <strong class="mono">${(breakdown.qualifyProb * 100).toFixed(0)}%</strong> •
                         Рекомендуемая страховка: <strong class="mono" style="color:#fde047;">${breakdown.bestOption.insAnte.toFixed(1)} A</strong> (EV самой страховки: <span class="mono">${formatEV(breakdown.bestOption.pureInsEV)}</span>).
                     </div>
                 `;
@@ -1675,8 +1921,44 @@
         }
     }
 
+    function renderBuyDealerPanel() {
+        const panel = document.getElementById('buy-dealer-panel');
+        const box = getActiveBox();
+
+        if (state.phase !== 'buy_dealer_stage' || !box || !box.buyDealerData) {
+            panel.classList.add('hidden');
+            return;
+        }
+
+        panel.classList.remove('hidden');
+        const bd = box.buyDealerData;
+        const pEval = evaluateRussianHand(box.cards);
+        document.getElementById('buy-dealer-title').textContent =
+            `🔄 Бокс #${box.index + 1} (${pEval.primary.name} ${pEval.totalPayout}:1): У дилера «Нет игры»! Докупить игру дилеру (заменить ${bd.replacedCard.label}) за 1 A?`;
+
+        const analysisEl = document.getElementById('buy-dealer-analysis');
+        if (state.mode === 'exam') {
+            analysisEl.innerHTML = `<span style="color:#cbd5e1;">Режим «Экзамен»: примите решение о докупе игры дилеру за 1 A. Подробный расчёт EV появится в разборе ходов.</span>`;
+        } else {
+            analysisEl.innerHTML = `
+                <div>
+                    EV <strong>НЕ докупать</strong> (забрать +1 A по Анте): <strong class="mono">${formatEV(bd.evNoBuy)}</strong> •
+                    EV <strong>Докупить игру дилеру (−1 A)</strong>: <strong class="mono" style="color:${bd.shouldBuy ? '#34d399' : '#fb7185'};">${formatEV(bd.evBuy)}</strong>
+                </div>
+                <div style="margin-top:4px; color:#cbd5e1;">
+                    Исходы замены карты <strong>${bd.replacedCard.label}</strong> у дилера:
+                    дилер соберёт игру младше вашей: <strong class="mono">${(bd.probQualifyAndLose * 100).toFixed(0)}%</strong> •
+                    снова «Нет игры»: <strong class="mono">${(bd.probStillNoGame * 100).toFixed(0)}%</strong> •
+                    дилер переедет вас: <strong class="mono">${(bd.probQualifyAndWin * 100).toFixed(0)}%</strong>.
+                    Рекомендация: <strong style="color:#fde047;">${bd.shouldBuy ? 'ДОКУПИТЬ ИГРУ ДИЛЕРУ' : 'НЕ ДОКУПАТЬ'}</strong>.
+                </div>
+            `;
+        }
+    }
+
     function renderAll() {
-        // Stats
+        document.getElementById('stat-hand-num').textContent = state.handNumber;
+
         const brEl = document.getElementById('stat-bankroll');
         brEl.textContent = `${state.bankrollAnte >= 0 ? '+' : ''}${state.bankrollAnte.toFixed(2)} A`;
         brEl.style.color = state.bankrollAnte >= 0 ? '#34d399' : '#fb7185';
@@ -1685,12 +1967,12 @@
         document.getElementById('stat-accuracy').textContent = `${acc}%`;
         document.getElementById('stat-ev-loss').textContent = `${state.totalEVLossAnte.toFixed(2)} A`;
 
-        // Dealer
+        // Dealer cards
         const dealerRow = document.getElementById('dealer-cards');
         dealerRow.innerHTML = '';
         if (state.dealerCards.length > 0) {
             dealerRow.appendChild(renderCardEl(state.dealerCards[0]));
-            if (state.phase === 'showdown') {
+            if (state.phase === 'showdown' || state.phase === 'buy_dealer_stage') {
                 for (let i = 1; i < state.dealerCards.length; i++) {
                     dealerRow.appendChild(renderCardEl(state.dealerCards[i]));
                 }
@@ -1711,7 +1993,8 @@
         boxesEl.innerHTML = '';
         state.boxes.forEach(box => {
             const slot = document.createElement('div');
-            const isTurn = (state.phase === 'decision_boxes' && state.activeBoxIndex === box.index && box.enabled && box.status === 'playing');
+            const isTurn = ((state.phase === 'decision_boxes' || state.phase === 'buy_dealer_stage') &&
+                state.activeBoxIndex === box.index && box.enabled);
             slot.className = `box-slot ${!box.enabled ? 'disabled' : ''} ${isTurn ? 'active-turn' : ''}`;
 
             const hdr = document.createElement('div');
@@ -1734,7 +2017,7 @@
                 cRow.className = 'cards-row';
                 box.cards.forEach((c, idx) => {
                     const sel = box.selectedCardIndices.has(idx);
-                    cRow.appendChild(renderCardEl(c, sel, isTurn ? () => {
+                    cRow.appendChild(renderCardEl(c, sel, (state.phase === 'decision_boxes' && isTurn && box.status === 'playing') ? () => {
                         if (box.selectedCardIndices.has(idx)) box.selectedCardIndices.delete(idx);
                         else box.selectedCardIndices.add(idx);
                         renderAll();
@@ -1747,6 +2030,12 @@
                 badge.className = 'box-hand-badge';
                 badge.textContent = `${pEval.primary.name}${pEval.totalPayout > 0 ? ` (${pEval.totalPayout}:1)` : ''}`;
                 slot.appendChild(badge);
+
+                const invested = box.antePaid + box.exchangePaid + box.buyDealerPaid + (box.status === 'bet' || box.status === 'done' ? 2.0 : 0);
+                const invEl = document.createElement('div');
+                invEl.className = 'box-invested';
+                invEl.textContent = `Вложено: ${invested.toFixed(1)} A` + (box.exchangePaid > 0 ? ' (вкл. обмен 1 A)' : '');
+                slot.appendChild(invEl);
 
                 if (box.resultText) {
                     const res = document.createElement('div');
@@ -1764,8 +2053,8 @@
             boxesEl.appendChild(slot);
         });
 
-        // Insurance & Actions
         renderInsurancePanel();
+        renderBuyDealerPanel();
         renderActionButtons();
         renderHelperStrip();
     }
@@ -1776,12 +2065,31 @@
         btnWrap.innerHTML = '';
 
         if (state.phase === 'showdown') {
-            promptEl.textContent = 'Раздача завершена. Посмотрите итоги на боксах или начните новую.';
+            promptEl.textContent = 'Раздача завершена. Посмотрите итоги на боксах или перейдите к следующей раздаче.';
             const nextBtn = document.createElement('button');
             nextBtn.className = 'btn btn-emerald';
             nextBtn.textContent = '▶ Следующая раздача';
             nextBtn.onclick = () => state.mode === 'builder' ? setupBuilderBoard() : dealNewHand();
             btnWrap.appendChild(nextBtn);
+            return;
+        }
+
+        if (state.phase === 'buy_dealer_stage') {
+            const box = getActiveBox();
+            promptEl.textContent = `Этап докупа игры дилеру • Решение для Бокса #${box.index + 1}`;
+
+            const noBuyBtn = document.createElement('button');
+            noBuyBtn.className = 'btn btn-emerald';
+            noBuyBtn.textContent = 'Не докупать (забрать +1 A)';
+            noBuyBtn.onclick = () => handleBuyDealerDecision(false);
+
+            const buyBtn = document.createElement('button');
+            buyBtn.className = 'btn btn-purple';
+            buyBtn.textContent = '🔄 Докупить игру дилеру (−1 A)';
+            buyBtn.onclick = () => handleBuyDealerDecision(true);
+
+            btnWrap.appendChild(noBuyBtn);
+            btnWrap.appendChild(buyBtn);
             return;
         }
 
@@ -1793,9 +2101,10 @@
 
         promptEl.textContent = `Ход Бокса #${box.index + 1} (кликните по картам, чтобы выбрать для обмена)`;
 
+        const foldLoss = box.antePaid + box.exchangePaid;
         const foldBtn = document.createElement('button');
         foldBtn.className = 'btn btn-rose';
-        foldBtn.textContent = 'Сбросить (−1 A)';
+        foldBtn.textContent = `Сбросить (−${foldLoss.toFixed(0)} A)`;
         foldBtn.onclick = () => handlePlayerAction('fold');
 
         const betBtn = document.createElement('button');
@@ -1824,7 +2133,7 @@
 
     function renderHelperStrip() {
         const strip = document.getElementById('table-helper-strip');
-        if (state.mode === 'exam' && state.phase === 'decision_boxes') {
+        if (state.mode === 'exam' && (state.phase === 'decision_boxes' || state.phase === 'buy_dealer_stage')) {
             strip.innerHTML = `<span style="color:#94a3b8;">📝 Режим «Экзамен»: EV-подсказки скрыты до завершения хода.</span>`;
             return;
         }
@@ -1838,12 +2147,23 @@
                 </span>`
             ).join('');
 
+            let topExHtml = '';
+            if (d.allExchanges && d.allExchanges.length > 0) {
+                const top3 = d.allExchanges.slice(0, 3).map(ex =>
+                    `<span class="mono">${ex.dropLabels}</span> (${formatEV(ex.ev)})`
+                ).join(' • ');
+                topExHtml = `<div style="margin-top:4px; font-size:12px; color:#94a3b8;">Топ-3 варианта обмена: ${top3}</div>`;
+            }
+
             strip.innerHTML = `
                 <div><strong>EV-анализ Бокса #${box.index + 1}</strong> (вероятность «Нет игры» у дилера: <strong class="mono">${(d.dealerNoGameProb * 100).toFixed(0)}%</strong>):</div>
                 <div style="margin-top:4px;">${optsHtml}</div>
+                ${topExHtml}
             `;
+        } else if (state.phase === 'buy_dealer_stage' && box && box.buyDealerData) {
+            strip.innerHTML = `Этап докупа игры дилеру: сравните гарантированный выигрыш по Анте с математическим ожиданием замены старшей карты дилера.`;
         } else if (state.phase === 'showdown') {
-            strip.innerHTML = `Раздача завершена. Подробная оценка каждого решения и страховки доступна в кнопке <strong>«📊 Разбор ходов»</strong>.`;
+            strip.innerHTML = `Раздача #${state.handNumber} завершена. Подробная оценка каждого решения доступна в кнопке <strong>«📊 Разбор ходов»</strong>.`;
         }
     }
 
@@ -1855,8 +2175,8 @@
         }
         el.innerHTML = state.history.map(item => `
             <div class="step-item">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                    <strong>${item.stage} • Карты: <span class="mono">${item.cards}</span> (Дилер: ${item.dealerUp})</strong>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px; flex-wrap:wrap;">
+                    <strong>Раздача #${item.handNumber || 1} • ${item.stage} • Карты: <span class="mono">${item.cards}</span> (Дилер: ${item.dealerUp})</strong>
                     <span class="${item.badgeClass}">${item.gradeLabel}</span>
                 </div>
                 <div style="font-size:13px; color:#cbd5e1;">
