@@ -682,6 +682,7 @@
                 <div class="stat-chip">Банкролл: <strong class="mono" id="stat-bankroll" style="color:#34d399;">+0.00 A</strong></div>
                 <div class="stat-chip">Точность: <strong class="mono" id="stat-accuracy">100%</strong></div>
                 <div class="stat-chip">Потери EV: <strong class="mono" id="stat-ev-loss" style="color:#fb7185;">0.00 A</strong></div>
+                <button class="btn" onclick="resetSessionStats()" title="Обнулить статистику сессии">🔄 Сброс</button>
                 <button class="btn" onclick="openModal('history-modal')">📊 Разбор ходов</button>
                 <button class="btn" onclick="openModal('leaks-modal')">🩺 Лики</button>
                 <button class="btn" onclick="openModal('rules-modal')">📘 Правила</button>
@@ -1019,24 +1020,25 @@
 
         let totalNetProfit = 0;
         let noGameCount = 0;
+        const extraExchangeCost = Math.max(0, sunkCost - 1.0);
 
         for (let i = 0; i < simsCount; i++) {
             const hole = pickRandomCardsSeeded(remDeck, 4, rng);
             const dEval = evaluate5Cards([dealerUpCard, ...hole]);
             if (dEval.rank === 0) {
                 noGameCount++;
-                // Дилер без игры: Анте оплачивается 1:1 (прибыль +1 A минус дополнительные расходы на обмен/докуп)
-                totalNetProfit += (2.0 - sunkCost);
+                // Дилер без игры: Анте (1 A) оплачивается 1:1 (прибыль +1.0 A), минус стоимость обмена/докупа
+                totalNetProfit += (1.0 - extraExchangeCost);
             } else {
                 if (pEval.primary.score > dEval.score) {
-                    // Победа: возврат Анте + выигрыш 2 * выплата по таблице минус дополнительные расходы на обмен/докуп
-                    totalNetProfit += (2 * pEval.totalPayout) - (sunkCost - 1.0);
+                    // Победа: +1.0 A по Анте + (2.0 * payout) по Бету − стоимость обмена/докупа
+                    totalNetProfit += (1.0 + 2.0 * pEval.totalPayout) - extraExchangeCost;
                 } else if (pEval.primary.score < dEval.score) {
-                    // Проигрыш: теряем sunkCost (Анте + обмен) и Бет (2 A)
-                    totalNetProfit -= (sunkCost + 2.0);
+                    // Проигрыш: теряем Анте (1 A) + Бет (2 A) + стоимость обмена/докупа
+                    totalNetProfit -= (3.0 + extraExchangeCost);
                 } else {
-                    // Ничья: возврат Анте и Бета, но расходы на обмен (sunkCost - 1) не возвращаются
-                    totalNetProfit -= (sunkCost - 1.0);
+                    // Ничья: возврат Анте и Бета (0 A по основной ставке), теряем только стоимость обмена/докупа
+                    totalNetProfit -= extraExchangeCost;
                 }
             }
         }
@@ -1198,10 +1200,10 @@
     // Расчёт EV докупа игры дилеру за 1 A (когда у дилера «Нет игры», а у игрока есть комбинация)
     function calculateBuyDealerEV(box, dealerCards, excludeIds) {
         const pEval = evaluateRussianHand(box.cards);
-        const sunkCost = box.antePaid + box.exchangePaid; // уже вложено в бокс (1 A или 2 A)
+        const extraExchangeCost = box.exchangePaid; // уже уплачено за обмен/6-ю карту (0 или 1 A)
 
-        // Если НЕ докупать: дилер «Нет игры» -> игрок получает +1 A за Анте (минус обмен и проигранная страховка, если была)
-        const evNoBuy = (2.0 - sunkCost) - box.insurancePaid;
+        // Если НЕ докупать: дилер «Нет игры» -> игрок получает +1.0 A по Анте (минус стоимость обмена)
+        const evNoBuy = (1.0 - extraExchangeCost) - box.insurancePaid;
 
         // Находим старшую карту дилера, которую дилер меняет при докупе игры
         let highestIdx = 0;
@@ -1224,22 +1226,22 @@
         for (const newCard of remDeck) {
             const newDealer5 = [...keptDealer4, newCard];
             const dEval = evaluate5Cards(newDealer5);
-            // Цена докупа 1 A платится всегда
+            const totalExtra = extraExchangeCost + 1.0; // обмен + 1.0 A за докуп игры дилеру
             if (dEval.rank === 0) {
                 stillNoGame++;
-                // Снова «Нет игры»: Анте не оплачивается (0 A), теряем только 1 A за докуп + прошлые расходы
-                sumBuy += (1.0 - sunkCost) - 1.0 - box.insurancePaid;
+                // Снова «Нет игры»: Анте не оплачивается (0 A), теряем обмен и 1.0 A за докуп
+                sumBuy += -totalExtra - box.insurancePaid;
             } else if (pEval.primary.score > dEval.score) {
                 dealerQualifyAndLose++;
-                // Дилер собрал игру младше нашей: получаем полную выплату 2 * выплата по таблице минус 1 A за докуп
-                sumBuy += (2 * pEval.totalPayout) - (sunkCost - 1.0) - 1.0 - box.insurancePaid;
+                // Дилер собрал игру младше нашей: +1.0 A по Анте + (2.0 * payout) по Бету − обмен − 1.0 A докуп
+                sumBuy += (1.0 + 2.0 * pEval.totalPayout) - totalExtra - box.insurancePaid;
             } else if (pEval.primary.score < dEval.score) {
                 dealerQualifyAndWin++;
-                // Дилер переехал нас: теряем Анте + обмен + Бет 2 A + 1 A за докуп
-                sumBuy += -(sunkCost + 2.0 + 1.0) - box.insurancePaid;
+                // Дилер переехал нас: теряем Анте (1 A) + Бет (2 A) + обмен + 1.0 A докуп
+                sumBuy += -(3.0 + totalExtra) - box.insurancePaid;
             } else {
                 // Ничья
-                sumBuy += -(sunkCost - 1.0 + 1.0) - box.insurancePaid;
+                sumBuy += -totalExtra - box.insurancePaid;
             }
         }
 
@@ -1259,6 +1261,16 @@
     }
 
     /* ==================== GAME STATE ==================== */
+    function createInitialLeaks() {
+        return {
+            badFold: { count: 0, loss: 0, title: 'Ошибочный фолд плюсовой руки', tip: 'Проверяйте эквити против открытой карты дилера — часто AK и слабые пары выгоднее играть бетом.' },
+            badCall: { count: 0, loss: 0, title: 'Минусовой бет со слабой рукой', tip: 'Мусорные руки без дро против сильной карты дилера лучше сбрасывать или менять.' },
+            missedExchange: { count: 0, loss: 0, title: 'Неоптимальный обмен / 6-я карта', tip: 'Не разбивайте готовую пару ради кикера, если только нет сильного стрит/флеш-дро; сравнивайте обмен с фолдом.' },
+            badInsurance: { count: 0, loss: 0, title: 'Ошибки при страховке от «Нет игры»', tip: 'Страховка 1:1 плюсова только когда вероятность «Нет игры» у дилера превышает 50%.' },
+            badBuyDealer: { count: 0, loss: 0, title: 'Ошибки при докупе игры дилеру (за 1 A)', tip: 'Докупайте игру дилеру от Стрита (4:1) и Сета (3:1), когда вероятность того, что дилер соберёт младшую игру, окупает риск его переезда.' }
+        };
+    }
+
     const state = {
         mode: 'hints',
         phase: 'idle', // idle | decision_boxes | buy_dealer_stage | showdown
@@ -1273,13 +1285,7 @@
         totalEVLossAnte: 0,
         history: [],
         currentHandSteps: [],
-        leaks: {
-            badFold: { count: 0, loss: 0, title: 'Ошибочный фолд плюсовой руки', tip: 'Проверяйте эквити против открытой карты дилера — часто AK и слабые пары выгоднее играть бетом.' },
-            badCall: { count: 0, loss: 0, title: 'Минусовой бет со слабой рукой', tip: 'Мусорные руки без дро против сильной карты дилера лучше сбрасывать или менять.' },
-            missedExchange: { count: 0, loss: 0, title: 'Неоптимальный обмен / 6-я карта', tip: 'Не разбивайте готовую пару ради кикера, если только нет сильного стрит/флеш-дро; сравнивайте обмен с фолдом.' },
-            badInsurance: { count: 0, loss: 0, title: 'Ошибки при страховке от «Нет игры»', tip: 'Страховка 1:1 плюсова только когда вероятность «Нет игры» у дилера превышает 50%.' },
-            badBuyDealer: { count: 0, loss: 0, title: 'Ошибки при докупе игры дилеру (за 1 A)', tip: 'Докупайте игру дилеру от Стрита (4:1) и Сета (3:1), когда вероятность того, что дилер соберёт младшую игру, окупает риск его переезда.' }
-        },
+        leaks: createInitialLeaks(),
         builderTarget: 'dealer_0'
     };
 
@@ -1373,6 +1379,22 @@
     window.clearHistory = function() {
         state.history = [];
         renderHistoryModal();
+    };
+
+    window.resetSessionStats = function() {
+        state.bankrollAnte = 0;
+        state.decisionsTotal = 0;
+        state.decisionsOptimal = 0;
+        state.totalEVLossAnte = 0;
+        state.history = [];
+        state.currentHandSteps = [];
+        state.handNumber = 0;
+        Object.keys(state.leaks).forEach(k => {
+            state.leaks[k].count = 0;
+            state.leaks[k].loss = 0;
+        });
+        if (state.mode === 'builder') setupBuilderBoard();
+        else dealNewHand();
     };
 
     /* ==================== DEAL & FULL HAND FLOW ==================== */
@@ -1718,6 +1740,7 @@
                     netDelta += box.insuranceAnte;
                     notes.push(`Страховка +${box.insuranceAnte.toFixed(1)} A`);
                 } else {
+                    box.insurancePaid = box.insuranceAnte;
                     netDelta -= box.insuranceAnte;
                     notes.push(`Страховка −${box.insuranceAnte.toFixed(1)} A`);
                 }
@@ -1725,9 +1748,9 @@
 
             // 2. Расчёт основного банка
             if (initialDealerEval.rank === 0 && !box.boughtDealerGame) {
-                // Игрок НЕ докупал игру дилеру -> получает +1 A по Анте (минус обмен, если был)
+                // Игрок НЕ докупал игру дилеру -> получает +1.0 A по Анте (минус обмен, если был)
                 netDelta += (1.0 - box.exchangePaid);
-                notes.push('Нет игры у дилера (+1 A)');
+                notes.push('Нет игры у дилера (+1.0 A)');
             } else {
                 // Либо у дилера изначально была игра, либо игрок докупил игру дилеру (и открылась новая 5-я карта дилера)
                 if (finalDealerEval.rank === 0) {
@@ -1735,11 +1758,11 @@
                     netDelta -= extraCosts;
                     notes.push(`После докупа (${replacedCardLabel}) снова «Нет игры» (0 A)`);
                 } else if (pEval.primary.score > finalDealerEval.score) {
-                    const winAmt = 2 * pEval.totalPayout;
+                    const winAmt = 1.0 + 2.0 * pEval.totalPayout;
                     netDelta += winAmt - extraCosts;
                     notes.push(`Победа +${winAmt.toFixed(1)} A`);
                 } else if (pEval.primary.score < finalDealerEval.score) {
-                    netDelta -= (box.antePaid + 2.0 + extraCosts);
+                    netDelta -= (3.0 + extraCosts);
                     notes.push('Проигрыш −3.0 A');
                 } else {
                     netDelta -= extraCosts;
